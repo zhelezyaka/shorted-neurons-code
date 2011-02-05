@@ -10,12 +10,12 @@ DeviceAddress HVAC = { 0x20, 0x48, 0xC6, 0x0, 0x0, 0x0, 0x0, 0x85 };
 //20 48 C6 0 0 0 0 85
 
 int vrange = 1;        // 0 = 2.56v, 1 = 5.12v
-int rez = 4;           // rez = 0-f bits where 0 = 16
+int rez = 2;           // rez = 0-f bits where 0 = 16
 bool parasite = 1;     // parasite power?
 float vdiv = 0.5;      // voltage divider circuit value?
 
 
-OneWire oneWire(8);
+OneWire oneWire(15);
 ds2450 my2450(&oneWire, HVAC, vrange, rez, parasite, vdiv);
 
 void setup(void) {
@@ -30,21 +30,33 @@ PString compassString(compassChars, sizeof(compassChars));
 
 void loop(void) {
   my2450.measure();
-  Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-
-//  works at 4 bits rez
-  unsigned int a = (my2450.voltChA() / 16834) * 256;
-  unsigned int b = (my2450.voltChB() / 16834) * 128;
-  unsigned int c = (my2450.voltChC() / 16834) * 32;
-  unsigned int d = (my2450.voltChD() / 16834)*4;
-  
-
+  Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
 /*
-  unsigned int a = (my2450.voltChA() / 16834) *512;
-  unsigned int b = (my2450.voltChB() / 16834) *64;
-  unsigned int c = (my2450.voltChC() / 16834) *8;
-  unsigned int d = (my2450.voltChD() / 16834)*1;
+    with 2-bits precision, shift right 14 bits, 2=L, 3=H 0=M
+    
+    chA = 3     chB = 3     chC = 0     chD = 3        N
+    chA = 3     chB = 0     chC = 0     chD = 3        NNE
+    chA = 3     chB = 0     chC = 3     chD = 3        NE
+    chA = 0     chB = 0     chC = 3     chD = 3        ENE
+    chA = 0     chB = 3     chC = 3     chD = 3        E
+    chA = 0     chB = 3     chC = 3     chD = 2        ESE
+    chA = 3     chB = 3     chC = 3     chD = 2        SE
+    chA = 3     chB = 3     chC = 2     chD = 2        SSE
+    chA = 3     chB = 3     chC = 2     chD = 3        S
+    chA = 3     chB = 2     chC = 2     chD = 3        SSW
+    chA = 3     chB = 2     chC = 3     chD = 3        SW
+    chA = 2     chB = 2     chC = 3     chD = 3        WSW
+    chA = 2     chB = 3     chC = 3     chD = 3        W
+    chA = 2     chB = 3     chC = 3     chD = 0        WNW
+    chA = 3     chB = 3     chC = 0     chD = 0        NW
+    chA = 3     chB = 3     chC = 0     chD = 3        NNW
+    
 */
+//  works at 4 bits rez
+  unsigned int a = (((unsigned int)my2450.voltChA()) >> 8);
+  unsigned int b = (((unsigned int)my2450.voltChB()) >> 10);
+  unsigned int c = (((unsigned int)my2450.voltChC()) >> 12);
+  unsigned int d = (((unsigned int)my2450.voltChD()) >> 14);
 /*
   Serial.print("chA=");
   Serial.print(a,DEC);
@@ -57,71 +69,74 @@ void loop(void) {
 */
   Serial.print("    u?=");
   unsigned int u=(a+b+c+d);
-  Serial.print(u);
+  Serial.print(u,DEC);
+  Serial.print("   ");
+  Serial.print((uint8_t)u,BIN);
+
 
   compassString.begin();      
   switch (u) {
-    case 65349:
+    case 243:
       compassString << "N";
       compass=0;
       break;
-    case 65411:
+    case 195:
       compassString << "NNE";
       compass=1;
       break;
-    case 65396:
+    case 207:
       compassString << "NE";
       compass=2;
       break;
-    case 65520:
+    case 15:
       compassString << "ENE";
       compass=3;
       break;
-    case 65458:
+    case 63:
       compassString << "E";
       compass=4;
       break;
-    case 65465:
+    case 62:
       compassString << "ESE";
       compass=5;
       break;
-    case 65341:
+    case 254:
       compassString << "SE";
       compass=6;
       break;
-    case 65299:
+    case 250:
       compassString << "SSE";
       compass=7;
       break;
-    case 65403:
+    case 251:
       compassString << "S";
       compass=8;
       break;
-    case 65179:
+    case 235:
       compassString << "SSW";
       compass=9;
       break;
-    case 78:
+    case 239:
       compassString << "SW";
       compass=10;
       break;
-    case 64961:
+    case 175:
       compassString << "WSW";
       compass=11;
       break;
-    case 358:
+    case 191:
       compassString << "W";
       compass=12;
       break;
-    case 359:
+    case 188:
       compassString << "WNW";
       compass=13;
       break;
-    case 65335:
+    case 252:
       compassString << "NW";
       compass=14;
       break;
-    case 65350:
+    case 240:
       compassString << "NNW";
       compass=15;
       break;
@@ -134,16 +149,16 @@ void loop(void) {
 
   Serial << " Compass direction = " << compass << ", ";  
   Serial.print(compassString);
-  
+
 /*
   Serial.print("chA = ");
-  Serial.print(my2450.voltChA());
+  Serial.print(((unsigned int)my2450.voltChA()) >> 14);
   Serial.print("     chB = ");
-  Serial.print(my2450.voltChB());
+  Serial.print(((unsigned int)my2450.voltChB()) >> 14);
   Serial.print("     chC = ");
-  Serial.print(my2450.voltChC());
+  Serial.print(((unsigned int)my2450.voltChC()) >> 14);
   Serial.print("     chD = ");
-  Serial.print(my2450.voltChD());
+  Serial.print(((unsigned int)my2450.voltChD()) >> 14);
 */
 
   Serial.print("        ");
