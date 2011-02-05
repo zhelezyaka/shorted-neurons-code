@@ -4,7 +4,7 @@
 DeviceAddress counter = { 0x1D, 0xE4, 0x7E, 0x01, 0x0, 0x0, 0x0, 0x76 };
 //1D E4 7E 1 0 0 0 76
 
-OneWire ow(8);
+OneWire ow(15);
 ds2423 myCounter(&ow, counter);
 
 uint8_t a1 = 0;
@@ -13,7 +13,7 @@ uint8_t b1 = 0;
 uint8_t b2 = 0;
 int diffA = 0;
 int diffB = 0;
-uint8_t secondsPerSample = 6;
+uint8_t secondsPerSample = 3;
 float cupRadius = 2.875; //radius of cup rotation in inches
 float cupCirc = PI * (2 * cupRadius); //circumference in inches
 float feetPerRev = cupCirc / 12;

@@ -22,7 +22,7 @@ uint8_t i;
    
 
 #include <OneWire.h>
-OneWire ds(8);  // on pin 8
+OneWire ds(15);  // on pin 8
 int qsensors, HighByte, LowByte, TReading, SignBit, Tc_100, Whole, Fract, Tf_100, fWhole, fFract;
 int dispSign = 0x0B;
 byte smac[8];
@@ -112,8 +112,8 @@ float getDS18B20_Celsius() {
   //clearly i do not understand at which point the INT turns into a FLOAT
   //floaty = (float(TReading - 0.25)) + float(float(16 - float(Count_Remain))/ 16);
   floaty = ((float(TReading - 0.25)) + (16 - float(Count_Remain))/ 16);
-  Serial << "EARLY Floaty =                                     " << floaty << "  ";
-  Serial.println(Count_Remain, DEC);
+  //Serial << "EARLY Floaty =                                     " << floaty << "  ";
+  //Serial.println(Count_Remain, DEC);
   return(floaty);
   /*
   Serial << "TReading = " << TReading << endl;
@@ -153,7 +153,7 @@ float getDS18B20_Celsius() {
 
 float getDS18B20_Fahrenheit() {
   floaty = (getDS18B20_Celsius() * 9/5) + 32;
-  Serial << "floaty fahrenheit reading is" << floaty << "." << endl;
+  //Serial << "floaty fahrenheit reading is" << floaty << "." << endl;
   return(floaty);
 }
 
