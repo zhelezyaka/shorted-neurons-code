@@ -45,7 +45,7 @@ char ascii[6];
 
 
 /* we always wait a bit between updates of the display */
-unsigned long delaytime=20;
+unsigned long delaytime=1000;
 
 
 //We always have to include the library
@@ -59,8 +59,8 @@ unsigned long delaytime=20;
  pin 10 is connected to LOAD 
  We have only a single MAX72XX.
  */
-LedControl ledbar=LedControl(13,12,11,1);
-LedControl lc=LedControl(16,15,14,1);
+//LedControl ledbar=LedControl(13,12,11,1);
+LedControl lc=LedControl(13,12,11,3);
 
 
 
@@ -302,12 +302,20 @@ void rtcGrab() {
   }  
   secs2 = (second % 10);
 
-  lc.setDigit(0,0,hrs1,false);
-  lc.setDigit(0,1,hrs2,false);
-  lc.setDigit(0,2,mins1,false);
-  lc.setDigit(0,3,mins2,false);
-  lc.setDigit(0,4,secs1,false);  
-  lc.setDigit(0,5,secs2,false);
+  lc.setDigit(2,0,hrs1,false);
+  lc.setDigit(2,1,hrs2,false);
+  lc.setDigit(2,2,mins1,false);
+  lc.setDigit(2,3,mins2,false);
+  lc.setDigit(2,4,secs1,false);  
+  lc.setDigit(2,5,secs2,false);
+
+  //lc.setDigit(2,0,hrs1,false);
+  lc.setDigit(1,0,hrs2,false);
+  lc.setDigit(1,1,mins1,false);
+  lc.setDigit(1,2,mins2,false);
+  lc.setDigit(1,3,secs1,false);  
+  lc.setDigit(1,4,secs2,false);
+
   
 //  } else {
 //    Serial.println("interval not passed"); 
@@ -331,7 +339,7 @@ void rtcGrab() {
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(57600);
   pinMode(btnPin, INPUT);
   //attachInterrupt(0, upCount, RISING);
   pinMode(opLed, OUTPUT);
@@ -343,16 +351,22 @@ void setup() {
 
   lc.shutdown(0,false);
   // Set the brightness to a medium values
-  lc.setIntensity(0,15);
+  lc.setIntensity(0,10);
   // and clear the display
   lc.clearDisplay(0);
 
 
-  ledbar.shutdown(0,false);
+  lc.shutdown(1,false);
   // Set the brightness to a medium values
-  ledbar.setIntensity(0,8);
+  lc.setIntensity(1,10);
   // and clear the display
-  ledbar.clearDisplay(0);
+  lc.clearDisplay(1);
+
+  lc.shutdown(2,false);
+  // Set the brightness to a medium values
+  lc.setIntensity(2,10);
+  // and clear the display
+  lc.clearDisplay(2);
 
   rtcSetup();  
 }
@@ -402,13 +416,13 @@ void scrollDigits() {
     lc.setDigit(0,1,i+4,false);
     lc.setDigit(0,0,i+5,false);
 
-    ledbar.setDigit(0,6,i,false);
-    ledbar.setDigit(0,5,i+1,false);
-    ledbar.setDigit(0,4,i+2,false);
-    ledbar.setDigit(0,3,i+3,false);
-    ledbar.setDigit(0,2,i+4,false);
-    ledbar.setDigit(0,1,i+5,false);
-    ledbar.setDigit(0,0,i+6,false);
+    lc.setDigit(0,6,i,false);
+    lc.setDigit(0,5,i+1,false);
+    lc.setDigit(0,4,i+2,false);
+    lc.setDigit(0,3,i+3,false);
+    lc.setDigit(0,2,i+4,false);
+    lc.setDigit(0,1,i+5,false);
+    lc.setDigit(0,0,i+6,false);
     delay(delaytime);
   }
   lc.clearDisplay(0);
@@ -424,17 +438,17 @@ void updateDisplay() {
   //  lc.clearDisplay(0);
   // delay(delaytime*20);
 
-  lc.setDigit(0,0,((periodCount / 100000) % 10),false);
-  lc.setDigit(0,1,((periodCount / 10000) % 10),false);
-  lc.setDigit(0,2,((periodCount / 1000) % 10),false);
-  lc.setDigit(0,3,((periodCount / 100) % 10),false);
-  lc.setDigit(0,4,((periodCount / 10) % 10),false);
-  lc.setDigit(0,5,(periodCount % 10),false);
+  lc.setDigit(2,0,((periodCount / 100000) % 10),false);
+  lc.setDigit(2,1,((periodCount / 10000) % 10),false);
+  lc.setDigit(2,2,((periodCount / 1000) % 10),false);
+  lc.setDigit(2,3,((periodCount / 100) % 10),false);
+  lc.setDigit(2,4,((periodCount / 10) % 10),false);
+  lc.setDigit(2,5,(periodCount % 10),false);
   
 
 
 //  binthing = dec_bin(periodCount);
-  ledbar.setRow(0,0,periodCount);
+  lc.setRow(0,0,periodCount);
 //  ledbar.setDigit(0,0,(periodCount % 10),false);
 //  ledbar.setDigit(0,1,((periodCount / 10) % 10),false);
 //  ledbar.setDigit(0,2,((periodCount / 100) % 10),false);  
@@ -475,14 +489,7 @@ void loop() {
 //  }
 
 /*
-  ledbar.setRow(0,0,B10000000);
-  ledbar.setRow(0,1,B10000000);
-  ledbar.setRow(0,2,B10000000);
-  ledbar.setRow(0,3,B10000000);
-  ledbar.setRow(0,4,B10000000);
-  ledbar.setRow(0,5,B10000000);
-  ledbar.setRow(0,6,B10000000);
-  delay(delaytime);
+  Serial.println("  B00000001");
   ledbar.setRow(0,0,B00000001);
   ledbar.setRow(0,1,B00000001);
   ledbar.setRow(0,2,B00000001);
@@ -490,7 +497,9 @@ void loop() {
   ledbar.setRow(0,4,B00000001);
   ledbar.setRow(0,5,B00000001);
   ledbar.setRow(0,6,B00000001);
+  lc.setDigit(0,5,0,true);
   delay(delaytime);
+  Serial.println("  B00000010");  
   ledbar.setRow(0,0,B00000010);
   ledbar.setRow(0,1,B00000010);
   ledbar.setRow(0,2,B00000010);
@@ -498,7 +507,9 @@ void loop() {
   ledbar.setRow(0,4,B00000010);
   ledbar.setRow(0,5,B00000010);
   ledbar.setRow(0,6,B00000010);
+  lc.setDigit(0,5,1,true);  
   delay(delaytime);
+  Serial.println("  B00000100");
   ledbar.setRow(0,0,B00000100);
   ledbar.setRow(0,1,B00000100);
   ledbar.setRow(0,2,B00000100);
@@ -506,7 +517,9 @@ void loop() {
   ledbar.setRow(0,4,B00000100);
   ledbar.setRow(0,5,B00000100);
   ledbar.setRow(0,6,B00000100);
+  lc.setDigit(0,5,2,true);  
   delay(delaytime);
+  Serial.println("  B00001000");  
   ledbar.setRow(0,0,B00001000);
   ledbar.setRow(0,1,B00001000);
   ledbar.setRow(0,2,B00001000);
@@ -514,7 +527,9 @@ void loop() {
   ledbar.setRow(0,4,B00001000);
   ledbar.setRow(0,5,B00001000);
   ledbar.setRow(0,6,B00001000);
+  lc.setDigit(0,5,3,true);  
   delay(delaytime);
+  Serial.println("  B00010000");    
   ledbar.setRow(0,0,B00010000);
   ledbar.setRow(0,1,B00010000);
   ledbar.setRow(0,2,B00010000);
@@ -522,7 +537,9 @@ void loop() {
   ledbar.setRow(0,4,B00010000);
   ledbar.setRow(0,5,B00010000);
   ledbar.setRow(0,6,B00010000);
+  lc.setDigit(0,5,4,true);  
   delay(delaytime);
+  Serial.println("  B00100000");    
   ledbar.setRow(0,0,B00100000);
   ledbar.setRow(0,1,B00100000);
   ledbar.setRow(0,2,B00100000);
@@ -530,7 +547,9 @@ void loop() {
   ledbar.setRow(0,4,B00100000);
   ledbar.setRow(0,5,B00100000);
   ledbar.setRow(0,6,B00100000);
+  lc.setDigit(0,5,5,true);  
   delay(delaytime);
+  Serial.println("  B01000000");    
   ledbar.setRow(0,0,B01000000);
   ledbar.setRow(0,1,B01000000);
   ledbar.setRow(0,2,B01000000);
@@ -538,7 +557,21 @@ void loop() {
   ledbar.setRow(0,4,B01000000);
   ledbar.setRow(0,5,B01000000);
   ledbar.setRow(0,6,B01000000);
+  lc.setDigit(0,5,6,true);  
   delay(delaytime);
+  Serial.println("  B10000000");  
+  ledbar.setRow(0,0,B10000000);
+  ledbar.setRow(0,1,B10000000);
+  ledbar.setRow(0,2,B10000000);
+  ledbar.setRow(0,3,B10000000);
+  ledbar.setRow(0,4,B10000000);
+  ledbar.setRow(0,5,B10000000);
+  ledbar.setRow(0,6,B10000000);
+  lc.setDigit(0,5,7,true);  
+  delay(delaytime);
+  Serial.print("waiting a bit");
+  delay(3000);
+
   ledbar.clearDisplay(0);
 */
   
@@ -546,21 +579,16 @@ void loop() {
     lastsecs = second;
     Serial.print("second = ");
     Serial.println(second);
-    if ( colons == 0 ) {
-      ledbar.setRow(0,5,B01010101);
-      ledbar.setRow(0,6,B10101010);
-      colons = 1;
-    } else {
-      ledbar.setRow(0,6,B01010101);
-      ledbar.setRow(0,5,B10101010);
-      colons = 0;
-    }
+
+    lc.setRow(0,5,B10101010);
+    lc.setRow(0,6,B10101010);
+
     shorty = ~(byte(second));
-    ledbar.setRow(0,0, shorty);
+    lc.setRow(0,0, shorty);
     shorty = ~(byte(minute));
-    ledbar.setRow(0,1, shorty);
+    lc.setRow(0,1, shorty);
     shorty = ~(byte(hour));
-    ledbar.setRow(0,2, shorty);
+    lc.setRow(0,2, shorty);
   }
   
 
@@ -587,7 +615,7 @@ void loop() {
   }
   
   rtcGrab();
-  delay(200);
+  //delay(200);
   digitalWrite(errLed, LOW);
   
 

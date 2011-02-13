@@ -36,7 +36,7 @@ File f;
 #define led2xPin 7
 #define powerPin 2
 #define battSensePin 3      // *analog* battery woltage sense pin
-
+#define btnPin 4
 
 #define BUFFSIZE 120
 char buffer[BUFFSIZE];
@@ -127,7 +127,7 @@ void setupWatchdog(){
   sbi( SMCR,SM1 );     // power down mode
   cbi( SMCR,SM2 );     // power down mode
 
-  config_watchdog(6);
+  config_watchdog(9);
 }
 
 byte del;
@@ -142,7 +142,7 @@ int light=0;
 void sleepWithBeacon(int dur) {
 
   int i;
-  dur = dur / 4; // assumes sleep mode 8, 4s per period
+  //dur = dur / 4; // assumes sleep mode 8, 4s per period
 //  if (f_wdt==1) {  // wait for timed out watchdog / flag is set when a watchdog timeout occurs
 //    f_wdt=0;       // reset flag
 //    nint++;
@@ -158,10 +158,13 @@ void sleepWithBeacon(int dur) {
       //Serial.println(i);
       //Serial.println(dur);
       //chkMem();
-      chkBtn();
+      //chkBtn();
+      if ( ! digitalRead(btnPin)) {
+        break;
+      }
       rtcTest();
       digitalWrite(actLed,HIGH);  // let led blink
-      delay(40);
+      delay(10);
       digitalWrite(actLed,LOW);
       system_sleep();
     }
@@ -208,7 +211,7 @@ void config_watchdog(int ii) {
 
 }
 
-//****************************************************************  
+//****************************************************************
 // Watchdog Interrupt Service / is executed when  watchdog timed out
 ISR(WDT_vect) {
   f_wdt=1;  // set global flag
@@ -221,7 +224,7 @@ ISR(WDT_vect) {
 /* *******************************
 /* BEGIN nikon L11 cam control stuff */
 
-#define btnPin 14
+
 //#define fastPinSw 14
 //#define BLUE 3
 //#define GREEN 4
@@ -435,59 +438,46 @@ void rtcTest () {
     //Serial.println(F("rtc 01"));
     DateTime now = RTC.now();
     //Serial.println(F("rtc 02"));
-    rtcString.begin();    
-    rtcString << now.year() << int(now.month())
-           << int(now.day()) << '-' 
-           << int(now.hour()) << ':' 
-           << int(now.minute()) << ':' 
-           << int(now.second());
+    rtcString.begin();
 
+    rtcString << now.year();
+
+    if (now.month() < 10 ) {
+      rtcString << "0" << int(now.month());
+    } else {
+      rtcString << int(now.month());
+    }
+    
+    if (now.day() < 10 ) {
+      rtcString << "0" << int(now.day()) << '-'; 
+    } else {
+      rtcString << int(now.day()) << '-'; 
+    }
+    
+    if (now.hour() < 10 ) {
+      rtcString << "0" << int(now.hour()) << ':'; 
+    } else {
+      rtcString << int(now.hour()) << ':'; 
+    }
+    
+    if (now.minute() < 10 ) {
+      rtcString << "0" << int(now.minute()) << ':' ;
+    } else {
+      rtcString << int(now.minute()) << ':'; 
+    }
+    
+    if (now.second() < 10 ) {
+      rtcString << "0" << int(now.second());
+    } else {
+      rtcString << int(now.second());
+    }
+    
     buffer2[rtcString.length()+1] = 0; // terminate it
 
-    Serial << now.year() << '/' << int(now.month()) << '/'
-           << int(now.day()) << ' ' 
-           << int(now.hour()) << ':' 
-           << int(now.minute()) << ':' 
-           << int(now.second()) << ', ' ;
-/*    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(' ');
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println();
-*/  
+    Serial << rtcString;
+
     Serial.print(F(" unix= "));
     Serial.println(now.unixtime());
-    //Serial.print("s = ");
-    //Serial.print(now.unixtime() / 86400L);
-    //Serial.println("d");
-    //chkMem();
-/*    
-    // calculate a date which is 7 days and 30 seconds into the future
-    DateTime future (now.unixtime() + 7 * 86400L + 30);
-    
-    Serial.print(" now + 7d + 30s: ");
-    Serial.print(future.year(), DEC);
-    Serial.print('/');
-    Serial.print(future.month(), DEC);
-    Serial.print('/');
-    Serial.print(future.day(), DEC);
-    Serial.print(' ');
-    Serial.print(future.hour(), DEC);
-    Serial.print(':');
-    Serial.print(future.minute(), DEC);
-    Serial.print(':');
-    Serial.print(future.second(), DEC);
-    Serial.println();
-    Serial.println();
-    //chkMem();
-    */
-    
 }
 /* end RTC stuff
  ***********************************/
@@ -622,12 +612,14 @@ void L5setup()
 {
   byte i;
   byte clr;
+
   pinMode(DATAOUT, OUTPUT);
   pinMode(DATAIN, INPUT);
   pinMode(SPICLOCK,OUTPUT);
   pinMode(SLAVESELECT,OUTPUT);
+  delay(10);
   digitalWrite(SLAVESELECT,HIGH); //disable device
-
+  delay(10);
   ///////////////////////////////////////////////////////////////////
   // SPCR = 01010000
   //interrupt disabled,spi enabled,msb 1st,master,clk low when idle,
@@ -641,9 +633,9 @@ void L5setup()
   //clear 7221 and format to receive data
   write_7seg(0x0C,1);     // set shutdown mode to "normal"  (i.e. not shut down)
   write_7seg(0x09,0xFF);  // set Code-B decode mode for digits 7 thru 0
-  write_7seg(0x0A,0x0F);  // set intensity 0-F
+  write_7seg(0x0A,0x08);  // set intensity 0-F
   write_7seg(0x0B,0x07);  // set scan limit to 0 1 2 3 4
-  L5loop();
+  //L5loop();
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -871,8 +863,10 @@ void setup()
   delay(1000);
   putstring_nl("tempLogger!");
   pinMode(actLed, OUTPUT);
-  //pinMode(led2Pin, OUTPUT);
 
+  pinMode(btnPin, INPUT);
+  digitalWrite(btnPin,HIGH); // turn on pullup
+  
   pinMode(battSensePin, INPUT);
   analogReference(DEFAULT);  
 
@@ -927,7 +921,7 @@ void sdCardSetup() {
     error(4);
   }
 
-  strcpy(buffer, "TMPLOG00.TXT");
+  strcpy(buffer, "BEER0100.TXT");
   for (buffer[6] = '0'; buffer[6] <= '9'; buffer[6]++) {
     for (buffer[7] = '0'; buffer[7] <= '9'; buffer[7]++) {
       putstring("\ntrying to open ");Serial.println(buffer);
@@ -1064,7 +1058,7 @@ void loop()
 
   Serial.print(str);
 
-  if ((iterations % 20) == 0) {
+  //if ((iterations % 20) == 0) {
     if ( sdok ) {
       buffer[str.length()+1] = 0; // terminate it
       if(card.write_file(f, (uint8_t *) buffer, str.length()) != str.length()) {
@@ -1082,12 +1076,14 @@ void loop()
     } else {
       Serial.println(F("SD card was not OK at some point in the past, skipping write!"));
     }
-  }
+  //}
 
   //Serial.println(F("LED 5 digit display time... "));
   //L5loop();
-  
-  //sleepWithBeacon(60);
+  delay(500);
+  write_7seg(0x0C,0);     // shutdown max7221
+  sleepWithBeacon(60);
+  write_7seg(0x0C,1);     // set shutdown mode to "normal"  (i.e. not shut down)
   Serial.print(F("loop done "));
   Serial.println(iterations);
 }

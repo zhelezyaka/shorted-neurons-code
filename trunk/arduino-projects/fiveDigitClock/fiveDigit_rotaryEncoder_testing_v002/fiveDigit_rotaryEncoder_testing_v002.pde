@@ -486,7 +486,7 @@ with
   
   if (r == 1 ) { digitalWrite(gLed, HIGH); digitalWrite(bLed, LOW); }
   if (r == -1 ) { digitalWrite(gLed, LOW); digitalWrite(bLed, HIGH); }
-  Serial.println(r);
+  //`Serial.print(r);
   lastRotary = nowRotary;
   return(r);
   
@@ -519,7 +519,7 @@ void setup() {
   digitalWrite(rLed, HIGH);
   // The MAX72XX is in power-saving mode on startup,
   // we have to do a wakeup call
-
+/*
   lc.shutdown(0,false);
   // Set the brightness to a medium values
   lc.setIntensity(0,15);
@@ -532,7 +532,7 @@ void setup() {
   ledbar.setIntensity(0,8);
   // and clear the display
   ledbar.clearDisplay(0);
-
+*/
   //rtcSetup(); 
   // rtcGrab(); 
 }
@@ -743,14 +743,16 @@ void loop() {
   }
 */  
 
-  
+    Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b"); 
   periodCount += checkRotary();
-    
-/*    Serial.print(periodCount);
-    Serial.print(" button pushes so far, and digit should be ");
+    Serial.print("   ");
+    Serial.print(periodCount,DEC);
+    Serial.print("   ");
+    //delay(50);
+/*    Serial.print(" button pushes so far, and digit should be ");
     Serial.println((periodCount / 10) % 10);
     Serial.println(periodCount % 10);
-    // toggle opLedState
+/*    // toggle opLedState
 */
 
     if (opLedState == LOW) {
@@ -763,7 +765,7 @@ void loop() {
   
     //digitalWrite(opLed, opLedState);
     digitalWrite(rLed, LOW);
-    updateDisplay();
+    //updateDisplay();
 
   
   // do this just once in setup so that we can play with the encoder
