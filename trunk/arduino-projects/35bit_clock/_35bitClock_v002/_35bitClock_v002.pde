@@ -79,8 +79,184 @@ void dec_bin(int number) {
  Serial.println("\n");
 
 }
+//begin rotary stuff
+
+int lastRotary = 0;
+int nowRotary = 0;
+boolean h1last = 0;
+int lastf = 0;
+
+#define h1pin 6
+#define h2pin 10
+#define h3pin 9 
+
+void rotarySetup() {
+  pinMode(h1pin, INPUT); 
+  pinMode(h2pin, INPUT);
+  pinMode(h3pin, INPUT);
+  digitalWrite(h1pin, HIGH);
+  digitalWrite(h2pin, HIGH);
+  digitalWrite(h3pin, HIGH);
+}
+
+int checkRotary() {
+  
+  boolean h1 = (digitalRead(h1pin));
+  boolean h2 = (digitalRead(h2pin));
+  boolean h3 = (digitalRead(h3pin));
+  
+  /* 
+    so we have a rotary encoder^H^H^H^H^H^H^H^H^H^H cdrom-drive motor,
+    with three Hall-effect sensors, which are hooked up to comparator
+    gates.  What we wind up with is a truth table that can tell you
+    whether we are moving or not, AND which direction, naturally 
+    important for use as a human interface control.
+    
+    So each hall effect is boolean output of the comparator, and we put em
+    all together into nowRotary.  Apparently its little-endian.
+    h1    0   0   0   0   1   1   1   1
+    h2    0   0   1   1   0   0   1   1
+    h3    0   1   0   1   0   1   0   1
+---------------------------------------
+   now    0   1   2   3   4   5   6   7
+   
+
+with 
+#define h1pin 2
+#define h2pin 15
+#define h3pin 16
+
+001
+101
+100
+110
+010
+011
+
+#define h1pin 2
+#define h2pin 16
+#define h3pin 15
+001
+011
+010
+110
+100
+101
+
+*/
+
+  nowRotary = ((h3 << 2) | (h2 << 1) | h1);
+//  Serial.print << "according to cminus, now = " << nowRotary << '\n';
+//  Serial.print("according to cminus, now = ");
+//  Serial.println(nowRotary);
+  
+//  nowRotary = (h3+(h2*2)+(h1*4));
+//  Serial << "according to ball,   now = " << nowRotary << '\n';
+//  Serial.print("according to ball,   now = ");
+//  Serial.println(nowRotary);  
+  int f = 0;
+  
+ if (nowRotary == lastRotary) {
+   return(0);
+ } else {
+   
+  //Serial.print("according to cminus,   now = ");
+  //Serial.println(nowRotary);     
+  if (nowRotary > lastRotary) f = 1;
+  if (nowRotary < lastRotary) f = -1;
+  lastRotary = nowRotary;
+  
+//  Serial.print("according to old way, f=");
+//  Serial.println(f);
+/* this doesnt work and i dont understand it
+  f = 0;
+  if (h1 != h1last) {       // clock pin has changed value... now we can do stuff
+    h3 = h1^h2^h3;              // work out direction using an XOR
+    if ( h3 ) {
+      f=-1;            // non-zero is Anti-clockwise
+    } else {
+      f=1;            // zero is therefore anti-clockwise
+    }
+    h1last = h1;            // store current clock state for next pass
+  } else {
+    f = 0;
+  }
+
+  Serial.print ("Jog:: count:");
+  Serial.println(f);
+*/
 
 
+/* works! but too fast:  
+  switch (nowRotary) {
+    case 0:
+      f = 0;
+      break;
+    case 1:
+      f = 1;
+      break;
+    case 5:
+      f = 2;
+      break;
+    case 4:
+      f = 3;
+      break;
+    case 6:
+      f = 4;
+      break;
+    case 2:
+      f = 5;
+      break;
+    case 3:
+      f = 6;
+      break;
+    case 7:
+      f = 7;
+      break;
+  } 
+  */
+  switch (nowRotary) {
+    // cases are in the order in which they occur when rotating the thing.  used to map order into something that is actually in order.  need some fancy bit math i think to do better.
+    case 1:
+      f = 1;
+      break;
+    case 5:
+      f = 1;
+      break;
+    case 4:
+      f = 3;
+      break;
+    case 6:
+      f = 3;
+      break;
+    case 2:
+      f = 5;
+      break;
+    case 3:
+      f = 5;
+      break;
+  } 
+
+  int r = 0;
+  if (f > lastf) r=1;
+  if (f < lastf) r=-1;
+  if (f == lastf) r=0;
+  // two special cases, basically for overflow
+  if (f == 1 && lastf == 5) r=1;
+  if (f == 5 && lastf == 1) r=-1;
+  lastf = f;
+  
+  //if (r == 1 ) { digitalWrite(gLed, HIGH); digitalWrite(bLed, LOW); }
+  //if (r == -1 ) { digitalWrite(gLed, LOW); digitalWrite(bLed, HIGH); }
+  //`Serial.print(r);
+  lastRotary = nowRotary;
+  return(r);
+  
+ }  
+}
+
+
+//end rotary stuff
 
 
 
@@ -259,6 +435,7 @@ void rtcGrab() {
       Serial.println(dayOfWeek, DEC);
     
     } else {
+      /*
       Serial.print(", data= ");
       Serial.print(hour, DEC);
       Serial.print(":");
@@ -273,7 +450,7 @@ void rtcGrab() {
       Serial.print(year, DEC);
       Serial.print("  Day_of_week:");
       Serial.println(dayOfWeek, DEC);
- 
+      */
     }
 
 
@@ -309,17 +486,6 @@ void rtcGrab() {
   lc.setDigit(2,4,secs1,false);  
   lc.setDigit(2,5,secs2,false);
 
-  //lc.setDigit(2,0,hrs1,false);
-  lc.setDigit(1,0,hrs2,false);
-  lc.setDigit(1,1,mins1,false);
-  lc.setDigit(1,2,mins2,false);
-  lc.setDigit(1,3,secs1,false);  
-  lc.setDigit(1,4,secs2,false);
-
-  
-//  } else {
-//    Serial.println("interval not passed"); 
-//  }
 
 }
 
@@ -368,7 +534,8 @@ void setup() {
   // and clear the display
   lc.clearDisplay(2);
 
-  rtcSetup();  
+  rtcSetup(); 
+  rotarySetup(); 
 }
 
 void upCount() {
@@ -379,55 +546,6 @@ void upCount() {
 
 
 
-/*
- This method will display the characters for the
- word "Arduino" one after the other on digit 0. 
- */
-void writeArduinoOn7Segment() {
-  lc.setChar(0,0,'a',false);
-  delay(delaytime);
-  lc.setRow(0,0,0x05);
-  delay(delaytime);
-  lc.setChar(0,0,'d',false);
-  delay(delaytime);
-  lc.setRow(0,0,0x1c);
-  delay(delaytime);
-  lc.setRow(0,0,B00010000);
-  delay(delaytime);
-  lc.setRow(0,0,0x15);
-  delay(delaytime);
-  lc.setRow(0,0,0x1D);
-  delay(delaytime);
-  lc.clearDisplay(0);
-  delay(delaytime);
-} 
-
-/*
-  This method will scroll all the hexa-decimal
- numbers and letters on the display. You will need at least
- four 7-Segment digits. otherwise it won't really look that good.
- */
-void scrollDigits() {
-  for(int i=0;i<16;i++) {
-    lc.setDigit(0,5,i,false);
-    lc.setDigit(0,4,i+1,false);
-    lc.setDigit(0,3,i+2,false);    
-    lc.setDigit(0,2,i+3,false);
-    lc.setDigit(0,1,i+4,false);
-    lc.setDigit(0,0,i+5,false);
-
-    lc.setDigit(0,6,i,false);
-    lc.setDigit(0,5,i+1,false);
-    lc.setDigit(0,4,i+2,false);
-    lc.setDigit(0,3,i+3,false);
-    lc.setDigit(0,2,i+4,false);
-    lc.setDigit(0,1,i+5,false);
-    lc.setDigit(0,0,i+6,false);
-    delay(delaytime);
-  }
-  lc.clearDisplay(0);
-  delay(delaytime);
-}
 
 
 
@@ -438,17 +556,17 @@ void updateDisplay() {
   //  lc.clearDisplay(0);
   // delay(delaytime*20);
 
-  lc.setDigit(2,0,((periodCount / 100000) % 10),false);
-  lc.setDigit(2,1,((periodCount / 10000) % 10),false);
-  lc.setDigit(2,2,((periodCount / 1000) % 10),false);
-  lc.setDigit(2,3,((periodCount / 100) % 10),false);
-  lc.setDigit(2,4,((periodCount / 10) % 10),false);
-  lc.setDigit(2,5,(periodCount % 10),false);
+  //lc.setDigit(1,0,((periodCount / 100000) % 10),false);
+  lc.setDigit(1,0,((periodCount / 10000) % 10),false);
+  lc.setDigit(1,1,((periodCount / 1000) % 10),false);
+  lc.setDigit(1,2,((periodCount / 100) % 10),false);
+  lc.setDigit(1,3,((periodCount / 10) % 10),false);
+  lc.setDigit(1,4,(periodCount % 10),false);
   
 
 
 //  binthing = dec_bin(periodCount);
-  lc.setRow(0,0,periodCount);
+  //lc.setRow(0,0,periodCount);
 //  ledbar.setDigit(0,0,(periodCount % 10),false);
 //  ledbar.setDigit(0,1,((periodCount / 10) % 10),false);
 //  ledbar.setDigit(0,2,((periodCount / 100) % 10),false);  
@@ -577,8 +695,8 @@ void loop() {
   
   if ((second > lastsecs) || (second == 0 && lastsecs == 59)) {
     lastsecs = second;
-    Serial.print("second = ");
-    Serial.println(second);
+    //Serial.print("second = ");
+    //Serial.println(second);
 
     lc.setRow(0,5,B10101010);
     lc.setRow(0,6,B10101010);
@@ -611,8 +729,12 @@ void loop() {
     dec_bin(periodCount);
   
     digitalWrite(opLed, opLedState);
-    updateDisplay();
+    
   }
+  updateDisplay();
+  Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\brotary:");
+  periodCount += checkRotary();
+  Serial.print(periodCount);
   
   rtcGrab();
   //delay(200);
