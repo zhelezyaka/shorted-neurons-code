@@ -2,12 +2,14 @@
 
 #include <Wire.h>
 #include "RTClib.h"
-#include <WString.h>                // include the String library
+//#include <WString.h>                // include the String library
 
 #define maxLength 30
 
 String inString = String(maxLength);       // allocate a new String
-String timeString = String(maxLength);       // allocate a new String
+String timeString = String(maxLength);// allocate a new String
+char hasToBeCharStar[maxLength];
+
 boolean needConfirm = true;
 
 RTC_DS1307 RTC;
@@ -23,7 +25,7 @@ void setup () {
   Serial.println("  while in the future.  for example:");
   Serial.println("13:43:30");
   Serial.println();
-  
+  inString = "";
   while ( inString.length() < 8 ) {
     // See if there's incoming serial data:
     if (Serial.available() > 0) {
@@ -34,10 +36,10 @@ void setup () {
     }
   }
   timeString = inString;
-  if (inString.contains(":")) {
-    Serial.print("cool, got ");
-    Serial.println(inString);
-  
+  if (inString.substring(2,3) == ":") {
+    //Serial.print("cool, got ");
+    //Serial.println(inString);
+    Serial.println();  
     Serial.print("please type \"YES\" to set the time to value above.  format has NOT been validated.");
     Serial.println(timeString);
 
@@ -48,14 +50,16 @@ void setup () {
         getIncomingChars();
         // print the string
       }
-      if (inString.contains("YES")) {
+      if (inString.substring(0) == "YES") {
         Serial.println("Thank you, confirmed.");
         needConfirm = false;
       }
     }
   
+    timeString.toCharArray(hasToBeCharStar, maxLength);
     // following line sets the RTC to the date & time this sketch was compiled
-    RTC.adjust(DateTime(__DATE__, timeString));
+    //RTC.adjust(DateTime(__DATE__, timeString));
+    RTC.adjust(DateTime(__DATE__, hasToBeCharStar));
 
   } else {
     Serial.print("string=");
@@ -73,7 +77,7 @@ void getIncomingChars() {
   // if you're not at the end of the string, append
   // the incoming character:
   if (inString.length() < maxLength) {
-    inString.append(inChar);
+    inString += inChar;
   } 
   else {
     // empty the string by setting it equal to the inoming char:
@@ -86,20 +90,6 @@ void getIncomingChars() {
 
 void printer () {
     DateTime now = RTC.now();
-/*    
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(' ');
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println();
-*/
 
     padding(now.year());
     Serial.print('/');
@@ -112,36 +102,12 @@ void printer () {
     padding(now.minute());
     Serial.print(':');
     padding(now.second());
-    Serial.println();
-
-    Serial.print(" since midnight 1/1/1970 = ");
+    Serial.print(" unixtime = ");  
     Serial.print(now.unixtime());
-    Serial.print("s = ");
-    Serial.print(now.unixtime() / 86400L);
-    Serial.println("d");
-/*    
-    // calculate a date which is 7 days and 30 seconds into the future
-    DateTime future (now.unixtime() + 7 * 86400L + 30);
-    
-    Serial.print(" now + 7d + 30s: ");
-    Serial.print(future.year(), DEC);
-    Serial.print('/');
-    Serial.print(future.month(), DEC);
-    Serial.print('/');
-    Serial.print(future.day(), DEC);
-    Serial.print(' ');
-    Serial.print(future.hour(), DEC);
-    Serial.print(':');
-    Serial.print(future.minute(), DEC);
-    Serial.print(':');
-    Serial.print(future.second(), DEC);
     Serial.println();
-    Serial.println();
-*/
-
 }
 
 void loop () {
   printer();
-  delay(300); 
+  delay(100); 
 }

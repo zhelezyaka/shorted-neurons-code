@@ -10,12 +10,24 @@ RotaryEncoder knob(6,10,9);
 char buffer2[64];
 PString rtcString(buffer2, sizeof(buffer2));
 byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+boolean trashBool = false;
 
 #define digitOnTime 0
 #define dimTime 20
 #define oneSec 500
 
-const int btnPin = 2;
+#define btnPin 2
+#define btn1 3
+#define btn2 4
+
+short currentMode = 0;
+
+#define defaultMode 0
+#define bright0Mode 1
+#define bright1Mode 2
+#define bright2Mode 3
+#define lastMode 3
+
 const int opLed =  7;      // the number of the LED pin
 const int errLed =  8;      // the number of the STOPLED pin
 
@@ -26,7 +38,7 @@ int opLedState = LOW;
 int colons = 0;
 
 long previousMillis = 0;
-unsigned long unixtime = 0;
+uint64_t unixtime = 0;
 volatile long periodCount = 0;
 volatile long nowCount = 0;
 
@@ -50,6 +62,7 @@ int four = 10;
 int five = 10;
 char ascii[6];
 
+short bright[3] = {1, 8, 15};
 
 
 
@@ -124,8 +137,12 @@ void rtcGrab () {
     year = now.year();
     unixtime = now.unixtime();
     
-    Serial.print(F(" unix= "));
-    Serial.println(now.unixtime());
+    /*
+    Serial.print(" unix= ");
+    Serial.print(now.unixtime(), DEC);
+    Serial.print(" bin= ");
+    Serial.println(now.unixtime(), BIN);
+    */
 
     // hours digiting
     if ( hour < 10 ) {
@@ -168,6 +185,11 @@ void rtcGrab () {
 void setup() {
   Serial.begin(57600);
   pinMode(btnPin, INPUT);
+  pinMode(btn1, INPUT);
+  pinMode(btn2, INPUT);
+  digitalWrite(btn1, HIGH);
+  digitalWrite(btn2, HIGH);
+  
   //attachInterrupt(0, upCount, RISING);
   pinMode(opLed, OUTPUT);
   pinMode(errLed, OUTPUT);
@@ -179,10 +201,18 @@ void setup() {
   lc.shutdown(1,false);
   lc.shutdown(2,false);
   // Set the brightness to a medium values
-  lc.setIntensity(0,10);
-  lc.setIntensity(1,10);
-  lc.setIntensity(2,10);
+  lc.setIntensity(0,bright[0]);
+  lc.setIntensity(1,bright[1]);
+  lc.setIntensity(2,bright[2]);
   // and clear the display
+  lc.setRow(0,0, B11111111);
+  lc.setRow(0,1, B11111111);
+  lc.setRow(0,2, B11111111);
+  lc.setRow(0,3, B11111111);  
+  lc.setRow(0,4, B11111111);
+  lc.setRow(0,5, B11111111);
+  lc.setRow(0,6, B11111111);
+  delay(1000);
   lc.clearDisplay(0);
   lc.clearDisplay(1);
   lc.clearDisplay(2);
@@ -203,106 +233,129 @@ void upCount() {
 
 
 
-
+#define DATEMODE 1
+int tinyDispMode = 1;
 
 void updateDisplay() {
-  //  lc.clearDisplay(0);
-  // delay(delaytime*20);
-
-  //lc.setDigit(1,0,((periodCount / 100000) % 10),false);
-  lc.setDigit(1,0,((periodCount / 10000) % 10),false);
-  lc.setDigit(1,1,((periodCount / 1000) % 10),false);
-  lc.setDigit(1,2,((periodCount / 100) % 10),false);
-  lc.setDigit(1,3,((periodCount / 10) % 10),false);
-  lc.setDigit(1,4,(periodCount % 10),false);
+  byte shorty;
+  if (tinyDispMode == DATEMODE ) {
+    lc.setDigit(1,0,((month/10) % 10),false);
+    lc.setDigit(1,1,(month % 10),false);
+    lc.setChar(1,2,' ',true);
+    lc.setDigit(1,3,((dayOfMonth/10) % 10),false);
+    lc.setDigit(1,4,(dayOfMonth % 10),false);
+    
+  } else {
+    
+    lc.setDigit(1,0,((periodCount / 10000) % 10),false);
+    lc.setDigit(1,1,((periodCount / 1000) % 10),false);
+    lc.setDigit(1,2,((periodCount / 100) % 10),false);
+    lc.setDigit(1,3,((periodCount / 10) % 10),false);
+    lc.setDigit(1,4,(periodCount % 10),false);
+  }
+  
   lc.setDigit(2,0,hrs1,false);
   lc.setDigit(2,1,hrs2,false);
   lc.setDigit(2,2,mins1,false);
   lc.setDigit(2,3,mins2,false);
   lc.setDigit(2,4,secs1,false);  
   lc.setDigit(2,5,secs2,false);
+  lc.setRow(0,5,B10101010);
+  lc.setRow(0,6,B10101010);
   
+  lc.setRow(0,4, byte(unixtime >> 32));
+  lc.setRow(0,3, byte(unixtime >> 24));
+  lc.setRow(0,2, byte(unixtime >> 16));  
+  lc.setRow(0,1, byte(unixtime >> 8));
+  lc.setRow(0,0, byte(unixtime));
 
 
-//  binthing = dec_bin(periodCount);
-  //lc.setRow(0,0,periodCount);
-//  ledbar.setDigit(0,0,(periodCount % 10),false);
-//  ledbar.setDigit(0,1,((periodCount / 10) % 10),false);
-//  ledbar.setDigit(0,2,((periodCount / 100) % 10),false);  
-//  ledbar.setDigit(0,3,((periodCount / 1000) % 10),false);  
-//  ledbar.setDigit(0,4,((periodCount / 10000) % 10),false);  
-//  ledbar.setDigit(0,5,((periodCount / 100000) % 10),false);  
-//  ledbar.setDigit(0,6,((periodCount / 1000000) % 10),false);  
+}
 
+int lastsecs = 0;
+void updateDisplayLazy() {
+  //FIXME - replace with interrupt driven update
+  if ((second > lastsecs) || (second == 0 && lastsecs == 59)) {
+    digitalWrite(opLed, HIGH);
+    lastsecs = second;
+    updateDisplay();
+    digitalWrite(opLed, LOW);
+  }
+}
 
-  //    if (opLedState == HIGH) {
-  //      periodCount++;
-  //    }
+void adjustBright(int disp) {
+  trashBool = true;
+  short i = 0;
+  
+  while(trashBool) {
+    i = knob.checkRotaryEncoder();
+    if (i != 0) {
+      i += bright[disp];
+      if ( i>15 ) i=15;
+      if ( i<0 ) i=0;
+      bright[disp] = i;
+      Serial << "adjust disp" << disp << " to:" << i << endl;
+      lc.setIntensity(disp,bright[disp]);
+    }
 
+    if (! digitalRead(btn2)) {
+      delay(50); //debounce
+      if (! digitalRead(btn2)) {
+        //ok, its really down, exit
+        trashBool=false;
+        currentMode=defaultMode;
+        Serial.println("exiting adjustBright due to btn2");
+        delay(200);
+        return;
+      }
+    }
+
+    if (! digitalRead(btn1)) {
+      delay(50); //debounce
+      if (! digitalRead(btn1)) {
+        //ok, its really down, exit
+        trashBool=false;
+        currentMode++;
+        Serial.println("exiting adjustBright due to btn1");
+        delay(200);
+        return;
+      }
+    }
+  }
 }
 
 
 
 
-
-
-
-
-
-int lastsecs = 0;
-byte shorty;
-
 void loop() { 
   digitalWrite(errLed, HIGH);
-  
-  if ((second > lastsecs) || (second == 0 && lastsecs == 59)) {
-    lastsecs = second;
-    //Serial.print("second = ");
-    //Serial.println(second);
-
-    lc.setRow(0,5,B10101010);
-    lc.setRow(0,6,B10101010);
-
-    shorty = ~(byte(second));
-    lc.setRow(0,0, shorty);
-    shorty = ~(byte(minute));
-    lc.setRow(0,1, shorty);
-    shorty = ~(byte(hour));
-    lc.setRow(0,2, shorty);
-  }
-  
-
-  
-  if (digitalRead(btnPin))  {
-    periodCount++;
-/*    Serial.print(periodCount);
-    Serial.print(" button pushes so far, and digit should be ");
-    Serial.println((periodCount / 10) % 10);
-    Serial.println(periodCount % 10);
-    // toggle opLedState
-*/
-
-    if (opLedState == LOW) {
-      opLedState = HIGH;
-    } else {
-      opLedState = LOW;
-    }
-   
-    dec_bin(periodCount);
-  
-    digitalWrite(opLed, opLedState);
-    
+  //digitalWrite(errLed, !digitalRead(btn1));
+  digitalWrite(opLed, !digitalRead(btn2));
+  delay(50);
+  Serial << "mode=" << currentMode << endl;
+  switch (currentMode) {
+    case bright0Mode:
+      adjustBright(0);
+      break;
+    case bright1Mode:
+      adjustBright(1);
+      break;
+    case bright2Mode:
+      adjustBright(2);
+      break;
+    default:
+      updateDisplayLazy();
+      break;
   }
 
-  //Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\brotary:");
+  if (! digitalRead(btn1)) {
+    currentMode++;
+    if (currentMode > lastMode) currentMode = defaultMode; //reset on overflow
+  }
+  
   periodCount += knob.checkRotaryEncoder();
-  updateDisplay();
-  //Serial.print(periodCount);
-  
+  digitalWrite(errLed, LOW); 
   rtcGrab();
-  //delay(200);
-  digitalWrite(errLed, LOW);
-  
-
+  delay(50);
 
 }
