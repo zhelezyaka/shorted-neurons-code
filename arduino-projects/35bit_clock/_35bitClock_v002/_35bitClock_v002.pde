@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include "RotaryEncoder.h"
+#include "Wire.h"
+#include "RTClib.h"
+
+RTC_DS1307 RTC;
 
 RotaryEncoder knob(6,10,9);
 
@@ -27,10 +31,10 @@ short currentMode = 0;
 #define bright1Mode 2
 #define bright2Mode 3
 #define lastMode 3
+#define idleTimeout 30
 
 const int opLed =  7;      // the number of the LED pin
 const int errLed =  8;      // the number of the STOPLED pin
-
 
 const int timer = 1000;           // The higher the number, the slower the timing.
 
@@ -61,6 +65,8 @@ int three = 10;
 int four = 10;
 int five = 10;
 char ascii[6];
+long dstOffset = 0;
+DateTime now;
 
 short bright[3] = {1, 8, 15};
 
@@ -105,14 +111,14 @@ void dec_bin(int number) {
 
 
 //begin RTC stuff
-#include "Wire.h"
-#include "RTClib.h"
+//#include "Wire.h"
+//#include "RTClib.h"
 
-RTC_DS1307 RTC;
+//RTC_DS1307 RTC;
 
-#define DS3232_I2C_ADDRESS 0x68
+//#define DS3232_I2C_ADDRESS 0x68
 
-/* RTC stuff */
+
 void rtcSetup() {
     Wire.begin();
     RTC.begin();
@@ -122,12 +128,13 @@ void rtcSetup() {
 
 
 void rtcGrab () {
-    //chkMem();
-    //Serial.println(F("rtc 01"));
-    DateTime now = RTC.now();
-    //Serial.println(F("rtc 02"));
+    now = RTC.now(); // get time from the RTC chip
     rtcString.begin();
-
+    
+    unixtime = now.unixtime();
+    now = unixtime + dstOffset;
+    unixtime = now.unixtime(); // get unixtime back again so that it matches offsetted "now".
+    
     second = now.second();
     minute = now.minute();
     hour = now.hour();
@@ -135,18 +142,10 @@ void rtcGrab () {
     dayOfMonth = now.day();
     month = now.month();
     year = now.year();
-    unixtime = now.unixtime();
-    
-    /*
-    Serial.print(" unix= ");
-    Serial.print(now.unixtime(), DEC);
-    Serial.print(" bin= ");
-    Serial.println(now.unixtime(), BIN);
-    */
 
     // hours digiting
     if ( hour < 10 ) {
-      hrs1 = 255;
+      hrs1 = 16 ;
     } else {
       hrs1 = round(hour/10);
     }  
@@ -286,10 +285,12 @@ void updateDisplayLazy() {
 void adjustBright(int disp) {
   trashBool = true;
   short i = 0;
-  
-  while(trashBool) {
+  previousMillis=millis();
+
+  while(trashBool && (((millis() - previousMillis)/1000) < idleTimeout)) {
     i = knob.checkRotaryEncoder();
     if (i != 0) {
+      previousMillis=millis(); //reset our timeout
       i += bright[disp];
       if ( i>15 ) i=15;
       if ( i<0 ) i=0;
@@ -306,6 +307,7 @@ void adjustBright(int disp) {
         currentMode=defaultMode;
         Serial.println("exiting adjustBright due to btn2");
         delay(200);
+        updateDisplay();
         return;
       }
     }
@@ -318,10 +320,15 @@ void adjustBright(int disp) {
         currentMode++;
         Serial.println("exiting adjustBright due to btn1");
         delay(200);
+        updateDisplay();
         return;
       }
     }
   }
+  
+  //if we get here, that means we timed out
+  currentMode=defaultMode;
+  
 }
 
 
@@ -329,9 +336,8 @@ void adjustBright(int disp) {
 
 void loop() { 
   digitalWrite(errLed, HIGH);
-  //digitalWrite(errLed, !digitalRead(btn1));
-  digitalWrite(opLed, !digitalRead(btn2));
   delay(50);
+  
   Serial << "mode=" << currentMode << endl;
   switch (currentMode) {
     case bright0Mode:
@@ -352,6 +358,21 @@ void loop() {
     currentMode++;
     if (currentMode > lastMode) currentMode = defaultMode; //reset on overflow
   }
+
+  if (! digitalRead(btn2)) {
+    delay(500); //debounce
+    if (! digitalRead(btn2)) {
+      
+      if (dstOffset > 0) { 
+        dstOffset = 0;
+        Serial.println("dstOffset now 0");
+      } else {
+        dstOffset = 3600;
+        Serial.println("dstOffset now 1 hour");
+      }
+    }
+  }
+ 
   
   periodCount += knob.checkRotaryEncoder();
   digitalWrite(errLed, LOW); 
