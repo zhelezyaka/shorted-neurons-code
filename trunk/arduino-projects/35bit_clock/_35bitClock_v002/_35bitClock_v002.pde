@@ -68,8 +68,40 @@ char ascii[6];
 long dstOffset = 0;
 DateTime now;
 
-short bright[3] = {1, 8, 15};
 
+
+/* EEPROM serialization stuff... really want to move this to a library */
+#include "serialization.h"
+#include <EEPROM.h>
+
+
+template <class T> int EEPROM_writeAnything(int ee, const T& value)
+{
+    const byte* p = (const byte*)(const void*)&value;
+    int i;
+    for (i = 0; i < sizeof(value); i++)
+	  EEPROM.write(ee++, *p++);
+    return i;
+}
+
+template <class T> int EEPROM_readAnything(int ee, T& value)
+{
+    byte* p = (byte*)(void*)&value;
+    int i;
+    for (i = 0; i < sizeof(value); i++)
+	  *p++ = EEPROM.read(ee++);
+    return i;
+}
+/* end EEPROM serialization stuff */
+
+
+
+
+struct config_t
+{
+  short bright[3];
+   
+} config;
 
 
 /* we always wait a bit between updates of the display */
@@ -193,6 +225,13 @@ void setup() {
   pinMode(opLed, OUTPUT);
   pinMode(errLed, OUTPUT);
 
+  EEPROM_readAnything(0, config);
+
+  Serial.println("config read from EEPROM:");
+  Serial << "config.bright[0] = " << config.bright[0] << endl;
+  Serial << "config.bright[1] = " << config.bright[1] << endl;
+  Serial << "config.bright[2] = " << config.bright[2] << endl;
+  
   digitalWrite(errLed, HIGH);
   // The MAX72XX is in power-saving mode on startup,
   // we have to do a wakeup call
@@ -200,9 +239,9 @@ void setup() {
   lc.shutdown(1,false);
   lc.shutdown(2,false);
   // Set the brightness to a medium values
-  lc.setIntensity(0,bright[0]);
-  lc.setIntensity(1,bright[1]);
-  lc.setIntensity(2,bright[2]);
+  lc.setIntensity(0,config.bright[0]);
+  lc.setIntensity(1,config.bright[1]);
+  lc.setIntensity(2,config.bright[2]);
   // and clear the display
   lc.setRow(0,0, B11111111);
   lc.setRow(0,1, B11111111);
@@ -286,17 +325,18 @@ void adjustBright(int disp) {
   trashBool = true;
   short i = 0;
   previousMillis=millis();
+  short tempbright = config.bright[disp];
 
   while(trashBool && (((millis() - previousMillis)/1000) < idleTimeout)) {
     i = knob.checkRotaryEncoder();
     if (i != 0) {
       previousMillis=millis(); //reset our timeout
-      i += bright[disp];
+      i += tempbright;
       if ( i>15 ) i=15;
       if ( i<0 ) i=0;
-      bright[disp] = i;
+      tempbright = i;
       Serial << "adjust disp" << disp << " to:" << i << endl;
-      lc.setIntensity(disp,bright[disp]);
+      lc.setIntensity(disp,tempbright);
     }
 
     if (! digitalRead(btn2)) {
@@ -308,6 +348,7 @@ void adjustBright(int disp) {
         Serial.println("exiting adjustBright due to btn2");
         delay(200);
         updateDisplay();
+        lc.setIntensity(disp,config.bright[disp]);
         return;
       }
     }
@@ -320,6 +361,8 @@ void adjustBright(int disp) {
         currentMode++;
         Serial.println("exiting adjustBright due to btn1");
         delay(200);
+        config.bright[disp]=tempbright;
+        commit_config();
         updateDisplay();
         return;
       }
@@ -342,12 +385,15 @@ void loop() {
   switch (currentMode) {
     case bright0Mode:
       adjustBright(0);
+      updateDisplay();      
       break;
     case bright1Mode:
       adjustBright(1);
+      updateDisplay();
       break;
     case bright2Mode:
       adjustBright(2);
+      updateDisplay();
       break;
     default:
       updateDisplayLazy();
@@ -380,3 +426,20 @@ void loop() {
   delay(50);
 
 }
+
+
+
+
+void commit_config()
+{
+
+  Serial.println("saving!");
+  EEPROM_writeAnything(0, config);
+
+}
+
+
+
+
+
+
