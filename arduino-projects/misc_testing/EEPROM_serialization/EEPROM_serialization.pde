@@ -47,7 +47,7 @@ void loop()
     // let the user adjust their alarm settings
     // let the user adjust their mode settings
     // ...
-    delay(500);
+    delay(5);
     configuration.mode++;
     configuration.alarm--;
     

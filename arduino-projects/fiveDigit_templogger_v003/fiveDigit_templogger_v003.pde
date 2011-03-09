@@ -6,10 +6,10 @@
 #define digitOnTime 0
 #define dimTime 20
 #define oneSec 500
-#define oneWireBusA 15
+#define oneWireBusA 8
 
 const int btnPin = 14;
-const int opLed =  4;      // the number of the LED pin
+const int opLed =  9;      // the number of the LED pin
 const int errLed =  3;      // the number of the STOPLED pin
 
 
@@ -60,9 +60,12 @@ unsigned long delaytime=20;
  pin 10 is connected to LOAD 
  We have only a single MAX72XX.
  */
-LedControl lc=LedControl(7,8,9,1);
+LedControl lc=LedControl(11,13,4,1);
 //LedControl ledbar=LedControl(16,15,14,1);
-
+//#define DATAOUT 11//MOSI
+//#define DATAIN 12//MISO - not used, but part of builtin SPI
+//#define SPICLOCK 13//sck
+//#define SLAVESELECT 4//ss
 
 
 
@@ -302,7 +305,7 @@ void rtcGrab() {
     secs1 = round(second/10);
   }  
   secs2 = (second % 10);
-
+/* show time on five dig display
   lc.setDigit(0,0,hrs1,false);
   lc.setDigit(0,1,hrs2,false);
   if ((secs2 % 2) == 0) {
@@ -312,6 +315,9 @@ void rtcGrab() {
   }
   lc.setDigit(0,3,mins1,false);
   lc.setDigit(0,4,mins2,false);
+  */
+  
+  
 //  lc.setDigit(0,4,secs1,false);  
 //  lc.setDigit(0,4,secs2,false);
   
@@ -472,7 +478,7 @@ void setup() {
 
   lc.shutdown(0,false);
   // Set the brightness to a medium values
-  lc.setIntensity(0,8);
+  lc.setIntensity(0,0);
   // and clear the display
   lc.clearDisplay(0);
 
@@ -563,13 +569,14 @@ int lastsecs = 0;
 byte shorty;
 
 void loop() { 
-  digitalWrite(errLed, HIGH);
+  //digitalWrite(errLed, HIGH);
   //writeArduinoOn7Segment();
   //scrollDigits();
 
 
-  if (! digitalRead(btnPin))  {
-    digitalWrite(opLed, HIGH);
+  //if (! digitalRead(btnPin))  {
+  if ( true ) {
+    //digitalWrite(opLed, HIGH);
     //tempLoop();
 
   
@@ -607,8 +614,8 @@ void loop() {
     
     
   
-    lc.clearDisplay(0);
-    lc.setIntensity(0,15);
+    //lc.clearDisplay(0);
+    //lc.setIntensity(0,0);
     //write_7seg(4,0x8F);
     lc.setRow(0,0,dispSign);
     lc.setDigit(0,1,abs(Tf_100 / 1000 % 10),false);
@@ -619,14 +626,14 @@ void loop() {
 
     //updateDisplay();
     digitalWrite(opLed, LOW);
-    delay(2000);
-    lc.clearDisplay(0);
-    lc.setIntensity(0,8);
+    delay(200);
+    //lc.clearDisplay(0);
+    //lc.setIntensity(0,8);
   }
   
   rtcGrab();
   delay(200);
-  digitalWrite(errLed, LOW);
+  //digitalWrite(errLed, LOW);
   
 
 

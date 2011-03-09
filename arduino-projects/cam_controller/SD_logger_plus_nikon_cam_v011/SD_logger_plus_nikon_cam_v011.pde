@@ -34,10 +34,8 @@ File f;
 
 #define actLed 9
 #define powerPin 2
-#define battSensePin 3      // *analog* battery woltage sense pin
 
-
-#define BUFFSIZE 100
+#define BUFFSIZE 200
 char buffer[BUFFSIZE];
 char buffer2[BUFFSIZE];
 uint8_t bufferidx = 0;
@@ -148,8 +146,10 @@ int nowMinute = 55;
 void system_sleep() {
 
   cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
-
+  
   set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
+  //set_sleep_mode(SLEEP_MODE_IDLE); // sleep mode is set here
+
   sleep_enable();
 
   sleep_mode();                        // System sleeps here
@@ -206,9 +206,10 @@ ISR(WDT_vect) {
 #define powerSw 7
 #define focusSw 6
 #define shutterSw 5
-#define powerSwHoldTime 1200
+#define powerSwHoldTime 500
 #define warmupTime 3000
-#define focusSwHoldTime 1200
+#define powerDownHoldTime 3000
+#define focusSwHoldTime 2000
 #define shutterSwHoldTime 2000
 #define waitAfterExposure 3000
 #define longPicPeriod 120000
@@ -218,14 +219,21 @@ ISR(WDT_vect) {
 // photoresistor is on ANALOG pin 3 (aka D17 or atmega328 phys pin 26)
 #define periodPot 0
 
-#define lowLightLevel 560
-#define highLightLevel 580
+#define lowLightLevel 640
+#define highLightLevel 680
 boolean okToShoot = false;
 boolean writes_enabled = true;  // backwards... its currently true unless something goes wrong.
 int photoLevel = 0;
 int rtcPicPeriod = 15;
 
-int blinkTime = 100;
+// battery related bits
+int batteryMilliVolts = 0;
+#define battSensePin A3      // *analog* battery woltage sense pin
+#define AREFSource DEFAULT
+#define AREFmult 14 // 14 ~= 3311 / 1024 * 4.33;
+#define batteryThresholdMilliVolts 3550
+
+int blinkTime = 50;
 long previousMillis = 0;
 long interval = 60000;
 boolean powerOff = true;
@@ -309,10 +317,19 @@ boolean leftOff = true;
 void shoot() {
   if (okToShoot) {
     if (leftOff) {
+      //unfloat the switches to avoid power leak
+      pinMode(powerSw, OUTPUT);
+      pinMode(focusSw, OUTPUT);
+      pinMode(shutterSw, OUTPUT);
+      digitalWrite(powerSw, LOW);
+      digitalWrite(focusSw, HIGH);
+      digitalWrite(shutterSw, HIGH);
+      
       Serial.println(F("s001:pwr bus"));
       digitalWrite(RED, HIGH);
       digitalWrite(camRegulator, LOW);  //(EN pin on regulator goes low to turn on)
-      delay(powerSwHoldTime*2);
+      Serial.println(F("s001:pwr bus... wait"));
+      delay(warmupTime);
       Serial.println(F("s002:cam power button"));
       digitalWrite(powerSw, HIGH);
       delay(powerSwHoldTime);
@@ -356,10 +373,18 @@ void shoot() {
       delay(powerSwHoldTime);
       digitalWrite(powerSw, LOW);
       digitalWrite(BLUE, LOW);
-      delay(powerSwHoldTime *2);
+      delay(powerDownHoldTime);
       Serial.println(F("s007b:camRegulatorOff"));
       digitalWrite(camRegulator, HIGH);  //(EN pin on regulator goes high to turn OFF)
       digitalWrite(RED, LOW);
+
+      //float the switches to avoid power leak
+      //pinMode(powerSw, INPUT);
+      //pinMode(focusSw, INPUT);
+      //pinMode(shutterSw, INPUT);
+      digitalWrite(powerSw, LOW);
+      digitalWrite(focusSw, LOW);
+      digitalWrite(shutterSw, LOW);
     
       leftOff = true;
     } else {
@@ -376,6 +401,34 @@ void shoot() {
 
 }
 
+boolean batteryOk(int threshold) {
+
+  /*    
+      (277 * 3311 / 1024 ) * 4.33
+      3878.1701
+
+      (3878.1701 / 4.33) * 1024 / 3311
+      276.9999
+
+  */
+  int bvRaw=analogRead(battSensePin);
+  delay(2);
+  bvRaw=analogRead(battSensePin);  // twice since first from ADC after wakeup is often noisy per datasheet
+  Serial << "bvRaw=" << bvRaw << endl;
+  /* voltage in mV = raw reading * reference voltage / range * divider ratio */
+  batteryMilliVolts = bvRaw * AREFmult;
+  //Serial << ", battertMv=" << batteryMilliVolts;
+  //Serial << ", batteryV=" << (batteryMilliVolts/1000) << "." << ((batteryMilliVolts % 1000) /10) << endl; 
+
+  if (batteryMilliVolts >= threshold) {
+    // battery above threshold, OK
+    return(true);
+  } else {
+    // battery below threshold, not OK
+    return(false);
+  }
+  
+}
 
 boolean brightEnough() {
   //okToShoot is global, since we need it next time, cant just simply return
@@ -720,7 +773,7 @@ void setup()
   pinMode(actLed, OUTPUT);
 
   pinMode(battSensePin, INPUT);
-  analogReference(DEFAULT);  
+  analogReference(AREFSource);  
   
   camSetup();
   sdCardSetup();
@@ -807,7 +860,7 @@ void loop()
   float temp = getDS18B20_Fahrenheit();
   //Serial << F("floaty fahrenheit reading is ") << temp << F("F") << endl;
 
-  bv=analogRead(battSensePin);
+
   //chkMem();
   if (temp < -273 ) {
     Serial.println(F("poop, horked"));
@@ -816,17 +869,42 @@ void loop()
   
   rtcTest();
 
-  boolean poop = brightEnough();
+  boolean lightOk = brightEnough();
+  boolean battOk = batteryOk(batteryThresholdMilliVolts);
+  short lightOkPrintable = 0;
+  short battOkPrintable = 0;
+  if (lightOk) lightOkPrintable=1;
+  if (battOk) battOkPrintable=1;
 
-  str << rtcString << " picMins=" << rtcPicPeriod << ", batt=" << bv << ", i=" << iterations << ", t=" << temp << ", sun=" << photoLevel;
-  if (poop) {
-    str << F(" OK, shooting\n");
+  str << rtcString << " picMins=" << rtcPicPeriod << 
+     ", batt=" << (batteryMilliVolts/1000) << "." <<
+     ((batteryMilliVolts % 1000) /10) << "V, i=" <<
+     iterations << ", t=" << temp <<
+     ", sun=" << photoLevel <<
+     ", lightOk=" << lightOkPrintable <<
+     ", battOk=" << battOkPrintable;
+     
+  if (lightOk && battOk) {
+    str << F(", light and battery OK, shooting\n");
     Serial.print(str);
     shoot(); 
   } else {
-    str << F(" too dark\n");
-    Serial.print(str);
-    //digitalWrite(actLed, LOW); 
+    if (!lightOk && battOk) {
+      str << F(", too dark\n");
+    } else {
+      if (lightOk && !battOk) {
+        str << F(", battery too low\n");
+      } else {
+        str << F(", too dark, and battery too low?");
+        if (!lightOk && !battOk) {
+          str << "correct\n";
+        } else {
+          str << "YIKES! how did we get here?\n";
+        }
+                
+      }
+    }
+    Serial.print(str);    
     
   }
   //chkMem();
@@ -855,7 +933,7 @@ void loop()
 
   
   
-  sleepWithBeacon(1800);  //(60 = 86 seconds between shots)
+  sleepWithBeacon(3600);  //(60 = 86 seconds between shots)
   Serial.print(F("loop done "));
   Serial.println(iterations);
 }
