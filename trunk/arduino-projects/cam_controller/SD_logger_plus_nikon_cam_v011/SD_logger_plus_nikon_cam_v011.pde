@@ -6,16 +6,8 @@
 #include <avr/sleep.h>
 #include <Streaming.h>
 #include <PString.h>
-// 20292 = baseline
-// 20432 = added chkmem, resulted in:
-// chkMem free= 411, memory used=1637  
-// (note that chkMem showed as little as 190 before simply cutting strings down, but before Flash lib)
-//
 // Flash has to come after Streaming because of conflicting definition of endl
 #include <Flash.h>
-// adding a single Serial.println(F(" ")); resulting in 20602 compiled bin size
-// 90% conversion resulted in 21420 size, but:
-// chkMem free= 855, memory used=1193
 
 
 // Date and time functions using a DS1307 RTC connected via I2C and Wire lib
@@ -124,7 +116,7 @@ void setupWatchdog(){
   sbi( SMCR,SM1 );     // power down mode
   cbi( SMCR,SM2 );     // power down mode
 
-  config_watchdog(6);
+  config_watchdog(7);
 }
 
 byte del;
@@ -132,9 +124,10 @@ int cnt;
 byte state=0;
 int light=0;
 int lastSnapHour = 55;
-int lastSnapMinute = 77;
+long lastSnapMinute = 77;
 int nowHour = 55;
 int nowMinute = 55;
+long unixMinute = 1234567890;
 
 
 //****************************************************************
@@ -202,6 +195,7 @@ ISR(WDT_vect) {
 #define BLUE 9
 #define GREEN 9
 #define RED 9
+#define winkTime 30
 #define camRegulator 4
 #define powerSw 7
 #define focusSw 6
@@ -212,26 +206,44 @@ ISR(WDT_vect) {
 #define focusSwHoldTime 2000
 #define shutterSwHoldTime 2000
 #define waitAfterExposure 3000
-#define longPicPeriod 120000
-#define shortPicPeriod 10000
+#define defaultPicPeriod 15 // minutes divisible by
+#define minPicPeriod 15 // minutes divisible by 
+#define maxPicPeriod 60 // minutes divisible by
+#define periodIncrement 15 // minutes
+#define periodRoundToMax 30 // if greater than this number of minutes, we round up to max
+
 // photoresistor is on ANALOG pin 1 (aka D15 or atmega328 phys pin 24)
 #define photoResistor 1 
-// photoresistor is on ANALOG pin 3 (aka D17 or atmega328 phys pin 26)
+// periodPot is on ANALOG pin 0 (aka D14 or atmega328 phys pin 23)
 #define periodPot 0
+#define lowLightLevel 580
+#define highLightLevel 640
 
-#define lowLightLevel 640
-#define highLightLevel 680
 boolean okToShoot = false;
 boolean writes_enabled = true;  // backwards... its currently true unless something goes wrong.
 int photoLevel = 0;
-int rtcPicPeriod = 15;
+int rtcPicPeriod = defaultPicPeriod;
 
 // battery related bits
-int batteryMilliVolts = 0;
+long batteryMilliVolts = 0;
+float batteryVolts = 0;
 #define battSensePin A3      // *analog* battery woltage sense pin
-#define AREFSource DEFAULT
-#define AREFmult 14 // 14 ~= 3311 / 1024 * 4.33;
+#define AREFSource EXTERNAL
+
+// MAX6030 precision 3.000V reference
+#define AREFvolts 3.000
+#define AREFscaler 4.33
+#define AREFmult 1268 // 1268 ~= 100 * 3000 / 1024 * 4.33;
+#define AREFdiv 100 // divide afterwards to get back to an INT
 #define batteryThresholdMilliVolts 3550
+
+// alternate if we want to use DEFAULT AVCC voltage reference
+//#define AREFmult 14 // 14 ~= 3311 / 1024 * 4.33;
+
+// alternate if we want to use the INTERNAL voltage reference
+//#define AREFmult 465 // 465 ~= 100 * 1100 / 1024 * 4.33;
+//#define AREFdiv 100 // divide afterwards to get back to an INT
+//#define batteryThresholdMilliVolts 3550
 
 int blinkTime = 50;
 long previousMillis = 0;
@@ -242,7 +254,7 @@ boolean powerOff = true;
 void sleepWithBeacon(int dur) {
 
   int i;
-  dur = dur / 4; // assumes sleep mode 8, 4s per period
+//  dur = dur / 4; // assumes sleep mode 8, 4s per period
 //  if (f_wdt==1) {  // wait for timed out watchdog / flag is set when a watchdog timeout occurs
 //    f_wdt=0;       // reset flag
 //    nint++;
@@ -265,16 +277,23 @@ void sleepWithBeacon(int dur) {
       rtcTest();
       brightEnough();
       //rtcTest set hours and minutes for us
-      if (((nowMinute % rtcPicPeriod) == 0) && (nowMinute != lastSnapMinute)) {
+      
+//      if (((nowMinute % rtcPicPeriod) == 0) && ((rtcPicPeriod == 60 ) || (nowMinute != lastSnapMinute))) {
+        if (((nowMinute % rtcPicPeriod) == 0) && ((unixMinute != lastSnapMinute))) {
         Serial.print(F("minute seems to indicate we should take a picture... min = "));
         Serial.println(nowMinute, DEC);
+        Serial << ", unixMinute=" << unixMinute 
+               << ", lastSnapMinute=" << lastSnapMinute << endl;
+               
         lastSnapHour = nowHour;
-        lastSnapMinute = nowMinute;
+        lastSnapMinute = unixMinute;
+
         break;
       }
       
+      //winking
       digitalWrite(actLed,HIGH);  // let led blink
-      delay(40);
+      delay(winkTime);
       digitalWrite(actLed,LOW);
       system_sleep();
     }
@@ -306,8 +325,8 @@ void camSetup()
   digitalWrite(focusSw, HIGH);
   digitalWrite(shutterSw, HIGH);
   
-  if (rtcPicPeriod < 1) rtcPicPeriod = 1;
-  if (rtcPicPeriod > 30) rtcPicPeriod = 30;  // so we dont get stuck on 0 or a number larger than 30 that will only occur once an hour
+  if (rtcPicPeriod < minPicPeriod) rtcPicPeriod = minPicPeriod;
+  if (rtcPicPeriod > periodRoundToMax) rtcPicPeriod = maxPicPeriod;  // so we dont get stuck on 0 or a number larger than 30 that will only occur once an hour
   
 
 }
@@ -379,9 +398,9 @@ void shoot() {
       digitalWrite(RED, LOW);
 
       //float the switches to avoid power leak
-      //pinMode(powerSw, INPUT);
-      //pinMode(focusSw, INPUT);
-      //pinMode(shutterSw, INPUT);
+      pinMode(powerSw, INPUT);
+      pinMode(focusSw, INPUT);
+      pinMode(shutterSw, INPUT);
       digitalWrite(powerSw, LOW);
       digitalWrite(focusSw, LOW);
       digitalWrite(shutterSw, LOW);
@@ -395,8 +414,7 @@ void shoot() {
      Serial.println(F("s009=noshot"));
   }  
 
-
-
+  lastSnapMinute = unixMinute;
   Serial.println(F("s010:done!"));    
 
 }
@@ -411,14 +429,23 @@ boolean batteryOk(int threshold) {
       276.9999
 
   */
-  int bvRaw=analogRead(battSensePin);
+  unsigned int bvRaw=analogRead(battSensePin);
   delay(2);
   bvRaw=analogRead(battSensePin);  // twice since first from ADC after wakeup is often noisy per datasheet
-  Serial << "bvRaw=" << bvRaw << endl;
+  //Serial << "bvRaw=" << bvRaw << endl;
   /* voltage in mV = raw reading * reference voltage / range * divider ratio */
-  batteryMilliVolts = bvRaw * AREFmult;
-  //Serial << ", battertMv=" << batteryMilliVolts;
-  //Serial << ", batteryV=" << (batteryMilliVolts/1000) << "." << ((batteryMilliVolts % 1000) /10) << endl; 
+  batteryMilliVolts = long(bvRaw) * AREFmult;
+  batteryMilliVolts = batteryMilliVolts / AREFdiv;
+  
+  batteryVolts = float(bvRaw) * AREFvolts * AREFscaler / 1024;
+  
+  //Serial << ", batteryMv=" << batteryMilliVolts;
+  //Serial << ", batteryVolts=" << batteryVolts << endl;
+  
+  /*Serial << ", batteryV=" << (batteryMilliVolts/1000) << "." 
+         << ((batteryMilliVolts % 1000) / 100) 
+         << ((batteryMilliVolts % 100) / 10) 
+         << (batteryMilliVolts % 10) << endl; */
 
   if (batteryMilliVolts >= threshold) {
     // battery above threshold, OK
@@ -462,10 +489,30 @@ boolean chkBtn () {
     digitalWrite(RED, LOW);
     digitalWrite(GREEN, LOW);
     digitalWrite(BLUE, LOW);
-    //powerOff=false;
-      // read a new value for interval from attached pot:
+
+    // read a new value for interval from attached pot:
+    Serial.print(F("chkBtn: interval was minutes divisible by: "));
+    Serial.println(rtcPicPeriod);
+    
     int val = analogRead(periodPot);
-    rtcPicPeriod = map(val, 0, 1023, 1, 30);
+    
+    /* so we take pot reading 0-1024, and map it into a 
+       multiplier of the increment we want.
+       For instance, if periodIncrement = 15 minutes, 60/15 = 4, 
+       so map 1 to 4, then multiply by 15 to get to a number of 15 
+       minute increments... grok?
+      */
+    rtcPicPeriod = (map(val, 0, 1023, 1, (60/periodIncrement))) * periodIncrement;
+
+    // if there is some kinda malfunction, dont want to wind up with zero or something
+    if (rtcPicPeriod < minPicPeriod) rtcPicPeriod = minPicPeriod;
+
+    // we dont want to get stuck with say, 32 minute which will only happen
+    // once per hour, so if we are over periodRoundToMax, we round up to max so it
+    // makes more sense.
+    // this also takes care of accidental very large values
+    if (rtcPicPeriod > periodRoundToMax) rtcPicPeriod = maxPicPeriod;
+        
     Serial.print(F("chkBtn: interval now set to minutes that are divisible by: "));
     Serial.println(rtcPicPeriod);
 
@@ -481,41 +528,6 @@ boolean chkBtn () {
 }
 
 
-/*
-void camPoopLoop() {
-  long m = millis();
-  
-  if (! digitalRead(fastPinSw)) {
-    Serial.println("fast=ON");
-    interval = shortPicPeriod;
-    blinkTime = 100;
-    powerOff = false;
-  } else {
-    Serial.println("fast=OFF");
-    interval = longPicPeriod;
-    powerOff = true;
-    blinkTime = 400;
-  }
-  
-  Serial.println(m);
-  if (m - previousMillis > interval) {    
-    //if (digitalRead(btnPin)) {
-    shoot();
-    previousMillis = millis();         
-    Serial.print(interval);
-    Serial.println(" ms til next cam shot");
-    //}
-  } else {
-    // play with the LEDs
-    chkBtn();
-   }
-}
-
-*/
-
-
-
-
 /* END nikon L11 cam control stuff
 *****************************************/
 
@@ -525,7 +537,6 @@ void rtcSetup() {
     Wire.begin();
     RTC.begin();
     // use RTC_setter_prog once instead of doing it in here where its easy to run again accidentally
-    //RTC.adjust(DateTime("Aug 17 2010", "20:33:00"));
 }
 
 
@@ -533,62 +544,48 @@ void rtcTest () {
     //chkMem();
     DateTime now = RTC.now();
  
-    // FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
     nowHour = int(now.hour());
     nowMinute = int(now.minute());
+    unixMinute = now.unixtime() / 60L;
  
     rtcString.begin();    
-    rtcString << now.year() << int(now.month())
-           << int(now.day()) << '-' 
-           << int(now.hour()) << ':' 
-           << int(now.minute()) << ':' 
-           << int(now.second());
+    rtcString << now.year();
 
+    if (now.month() < 10 ) {
+      rtcString << "0" << int(now.month());
+    } else {
+      rtcString << int(now.month());
+    }
+    
+    if (now.day() < 10 ) {
+      rtcString << "0" << int(now.day()) << '-'; 
+    } else {
+      rtcString << int(now.day()) << '-'; 
+    }
+    
+    if (now.hour() < 10 ) {
+      rtcString << "0" << int(now.hour()) << ':'; 
+    } else {
+      rtcString << int(now.hour()) << ':'; 
+    }
+    
+    if (now.minute() < 10 ) {
+      rtcString << "0" << int(now.minute()) << ':' ;
+    } else {
+      rtcString << int(now.minute()) << ':'; 
+    }
+    
+    if (now.second() < 10 ) {
+      rtcString << "0" << int(now.second());
+    } else {
+      rtcString << int(now.second());
+    }
+    
     buffer2[rtcString.length()+1] = 0; // terminate it
 
-    Serial << now.year() << '/' << int(now.month()) << '/'
-           << int(now.day()) << ' ' 
-           << int(now.hour()) << ':' 
-           << int(now.minute()) << ':' 
-           << int(now.second()) << '\n' ;
-/*    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(' ');
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println();
-*/  
+
 //    Serial.print(F(" unix= "));
 //    Serial.println(now.unixtime());
-    //Serial.print("s = ");
-    //Serial.print(now.unixtime() / 86400L);
-    //Serial.println("d");
-    //chkMem();
-/*    
-    // calculate a date which is 7 days and 30 seconds into the future
-    DateTime future (now.unixtime() + 7 * 86400L + 30);
-    
-    Serial.print(" now + 7d + 30s: ");
-    Serial.print(future.year(), DEC);
-    Serial.print('/');
-    Serial.print(future.month(), DEC);
-    Serial.print('/');
-    Serial.print(future.day(), DEC);
-    Serial.print(' ');
-    Serial.print(future.hour(), DEC);
-    Serial.print(':');
-    Serial.print(future.minute(), DEC);
-    Serial.print(':');
-    Serial.print(future.second(), DEC);
-    Serial.println();
-    Serial.println();
-    //chkMem();
-    */
     
 }
 
@@ -670,9 +667,9 @@ float getDS18B20_Celsius() {
     //dbgSerial.print(data[i], HEX);
     //dbgSerial.print(" ");
   }
-//dbg  Serial.print(" CRC=");
-//dbg  Serial.print( OneWire::crc8( data, 8), HEX);
-//dbg  Serial.println();
+  //dbg  Serial.print(" CRC=");
+  //dbg  Serial.print( OneWire::crc8( data, 8), HEX);
+  //dbg  Serial.println();
   
   LowByte = data[0];
   HighByte = data[1];
@@ -849,14 +846,10 @@ void loop()
   //Serial.println(Serial.available(), DEC);
   char c;
   uint8_t sum;
-  //chkMem();
-  // Serial.println(F("trying to read the sensor..."));
-  //tempLoop();
+
   iterations++;
   ts = millis() / 1000;
   
-  //float temp = getDS18B20_Celsius();
-  //Serial << F("floaty celsius reading is ") << temp << F("C.") << endl;
   float temp = getDS18B20_Fahrenheit();
   //Serial << F("floaty fahrenheit reading is ") << temp << F("F") << endl;
 
@@ -876,13 +869,14 @@ void loop()
   if (lightOk) lightOkPrintable=1;
   if (battOk) battOkPrintable=1;
 
-  str << rtcString << " picMins=" << rtcPicPeriod << 
-     ", batt=" << (batteryMilliVolts/1000) << "." <<
-     ((batteryMilliVolts % 1000) /10) << "V, i=" <<
-     iterations << ", t=" << temp <<
-     ", sun=" << photoLevel <<
-     ", lightOk=" << lightOkPrintable <<
-     ", battOk=" << battOkPrintable;
+  str << rtcString << " picMins=" << rtcPicPeriod
+     << ", batt=";
+  str.print(batteryVolts,2); // doesnt work with << operator
+  str << "V, i=" << iterations 
+     << ", t=" << temp
+     << ", sun=" << photoLevel
+     << ", lightOk=" << lightOkPrintable
+     << ", battOk=" << battOkPrintable;
      
   if (lightOk && battOk) {
     str << F(", light and battery OK, shooting\n");
@@ -933,32 +927,10 @@ void loop()
 
   
   
-  sleepWithBeacon(3600);  //(60 = 86 seconds between shots)
+  sleepWithBeacon(30000);  //(60 = 86 seconds between shots)
   Serial.print(F("loop done "));
   Serial.println(iterations);
 }
 
-
-/************************
-    adafruit's idea of sleeping.  not sure i like it as much as other one above
-    
-void sleep_sec(uint8_t x) {
-  while (x--) {
-     // set the WDT to wake us up!
-    WDTCSR |= (1 << WDCE) | (1 << WDE); // enable watchdog & enable changing it
-    WDTCSR = (1<< WDE) | (1 <<WDP2) | (1 << WDP1);
-    WDTCSR |= (1<< WDIE);
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_enable();
-    sleep_mode();
-    sleep_disable();
-  }
-}
-
-SIGNAL(WDT_vect) {
-  WDTCSR |= (1 << WDCE) | (1 << WDE);
-  WDTCSR = 0;
-}
-*********** end adafruit sleeping **********/
 
 /* EOF */
