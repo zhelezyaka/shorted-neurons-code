@@ -15,7 +15,7 @@ bool parasite = 1;     // parasite power?
 float vdiv = 0.5;      // voltage divider circuit value?
 
 
-OneWire oneWire(15);
+OneWire oneWire(8);
 ds2450 my2450(&oneWire, HVAC, vrange, rez, parasite, vdiv);
 
 void setup(void) {
@@ -140,10 +140,75 @@ void loop(void) {
       compassString << "NNW";
       compass=15;
       break;
+    case 51:
+      compassString << "N";
+      compass=0;
+      break;
+    case 1950:
+      compassString << "NNE";
+      compass=1;
+      break;
+    case 2070:
+      compassString << "NE";
+      compass=2;
+      break;
+    case 1500:
+      compassString << "ENE";
+      compass=3;
+      break;
+    case 630:
+      compassString << "E";
+      compass=4;
+      break;
+    case 620:
+      compassString << "ESE";
+      compass=5;
+      break;
+    case 14:
+      compassString << "SE";
+      compass=6;
+      break;
+    case 10:
+      compassString << "SSE";
+      compass=7;
+      break;
+    case 11:
+      compassString << "S";
+      compass=8;
+      break;
+    case 43:
+      compassString << "SSW";
+      compass=9;
+      break;
+    case 47:
+      compassString << "SW";
+      compass=10;
+      break;
+    case 1750:
+      compassString << "WSW";
+      compass=11;
+      break;
+    case 143:
+      compassString << "W";
+      compass=12;
+      break;
+    case 1880:
+      compassString << "WNW";
+      compass=13;
+      break;
+    case 60:
+      compassString << "NW";
+      compass=14;
+      break;
+    case 510:
+      compassString << "NNW";
+      compass=15;
+      break;
+
     default:
       compassString << "unknown";
       compass=-1;
-      Serial << "UNKNOWN!!!! u=" << u << endl;
+      //Serial << "!u=" << u << endl;
       break;
   }
 

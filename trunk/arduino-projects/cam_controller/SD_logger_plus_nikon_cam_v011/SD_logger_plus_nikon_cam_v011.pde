@@ -29,7 +29,8 @@ File f;
 
 #define BUFFSIZE 200
 char buffer[BUFFSIZE];
-char buffer2[BUFFSIZE];
+#define RTCBUFFERSIZE 20
+char rtcBuffer[RTCBUFFERSIZE];
 uint8_t bufferidx = 0;
 uint8_t fix = 0; // current fix data
 uint8_t i;
@@ -592,20 +593,324 @@ void rtcTest () {
 
 
 
+/*************** ds2450 compass */
+
+#include <OneWire.h>
+#include <DS2450.h>
+OneWire oneWire(8);
+
+DeviceAddress COMPASS = { 0x20, 0x48, 0xC6, 0x0, 0x0, 0x0, 0x0, 0x85 };
+//20 48 C6 0 0 0 0 85
+int vrange = 1;        // 0 = 2.56v, 1 = 5.12v
+int rez = 2;           // rez = 0-f bits where 0 = 16
+bool parasite = 0;     // parasite power?
+float vdiv = 0.5;      // voltage divider circuit value?
+
+
+
+ds2450 my2450(&oneWire, COMPASS, vrange, rez, parasite, vdiv);
+
+void compassSetup(void) {
+  my2450.begin();
+}
+
+int8_t compass = -2;
+char compassChars[8];
+PString compassString(compassChars, sizeof(compassChars));
+
+
+void grabCompass(void) {
+  my2450.measure();
+  //Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+/*
+    with 2-bits precision, shift right 14 bits, 2=L, 3=H 0=M
+    
+    chA = 3     chB = 3     chC = 0     chD = 3        N
+    chA = 3     chB = 0     chC = 0     chD = 3        NNE
+    chA = 3     chB = 0     chC = 3     chD = 3        NE
+    chA = 0     chB = 0     chC = 3     chD = 3        ENE
+    chA = 0     chB = 3     chC = 3     chD = 3        E
+    chA = 0     chB = 3     chC = 3     chD = 2        ESE
+    chA = 3     chB = 3     chC = 3     chD = 2        SE
+    chA = 3     chB = 3     chC = 2     chD = 2        SSE
+    chA = 3     chB = 3     chC = 2     chD = 3        S
+    chA = 3     chB = 2     chC = 2     chD = 3        SSW
+    chA = 3     chB = 2     chC = 3     chD = 3        SW
+    chA = 2     chB = 2     chC = 3     chD = 3        WSW
+    chA = 2     chB = 3     chC = 3     chD = 3        W
+    chA = 2     chB = 3     chC = 3     chD = 0        WNW
+    chA = 3     chB = 3     chC = 0     chD = 0        NW
+    chA = 3     chB = 3     chC = 0     chD = 3        NNW
+    
+*/
+//  works at 4 bits rez
+  unsigned int a = (((unsigned int)my2450.voltChA()) >> 8);
+  unsigned int b = (((unsigned int)my2450.voltChB()) >> 10);
+  unsigned int c = (((unsigned int)my2450.voltChC()) >> 12);
+  unsigned int d = (((unsigned int)my2450.voltChD()) >> 14);
+  unsigned int u=(a+b+c+d);
+
+  compassString.begin();      
+  switch (u) {
+    case 243:
+      compassString << "N";
+      compass=0;
+      break;
+    case 195:
+      compassString << "NNE";
+      compass=1;
+      break;
+    case 207:
+      compassString << "NE";
+      compass=2;
+      break;
+    case 15:
+      compassString << "ENE";
+      compass=3;
+      break;
+    case 63:
+      compassString << "E";
+      compass=4;
+      break;
+    case 62:
+      compassString << "ESE";
+      compass=5;
+      break;
+    case 254:
+      compassString << "SE";
+      compass=6;
+      break;
+    case 250:
+      compassString << "SSE";
+      compass=7;
+      break;
+    case 251:
+      compassString << "S";
+      compass=8;
+      break;
+    case 235:
+      compassString << "SSW";
+      compass=9;
+      break;
+    case 239:
+      compassString << "SW";
+      compass=10;
+      break;
+    case 175:
+      compassString << "WSW";
+      compass=11;
+      break;
+    case 191:
+      compassString << "W";
+      compass=12;
+      break;
+    case 188:
+      compassString << "WNW";
+      compass=13;
+      break;
+    case 252:
+      compassString << "NW";
+      compass=14;
+      break;
+    case 240:
+      compassString << "NNW";
+      compass=15;
+      break;
+    case 51:
+      compassString << "N";
+      compass=0;
+      break;
+    case 1950:
+      compassString << "NNE";
+      compass=1;
+      break;
+    case 2070:
+      compassString << "NE";
+      compass=2;
+      break;
+    case 1500:
+      compassString << "ENE";
+      compass=3;
+      break;
+    case 630:
+      compassString << "E";
+      compass=4;
+      break;
+    case 620:
+      compassString << "ESE";
+      compass=5;
+      break;
+    case 14:
+      compassString << "SE";
+      compass=6;
+      break;
+    case 10:
+      compassString << "SSE";
+      compass=7;
+      break;
+    case 11:
+      compassString << "S";
+      compass=8;
+      break;
+    case 43:
+      compassString << "SSW";
+      compass=9;
+      break;
+    case 47:
+      compassString << "SW";
+      compass=10;
+      break;
+    case 1750:
+      compassString << "WSW";
+      compass=11;
+      break;
+    case 143:
+      compassString << "W";
+      compass=12;
+      break;
+    case 1880:
+      compassString << "WNW";
+      compass=13;
+      break;
+    case 60:
+      compassString << "NW";
+      compass=14;
+      break;
+    case 510:
+      compassString << "NNW";
+      compass=15;
+      break;
+
+    default:
+      compassString << (u, DEC);
+      compass=-1;
+      //Serial << "!u=" << u << endl;
+      break;
+  }
+
+  //Serial << " Compass direction = " << compass << ", ";  
+  //Serial.print(compassString);
+
+/*
+  Serial.print("chA = ");
+  Serial.print(((unsigned int)my2450.voltChA()) >> 14);
+  Serial.print("     chB = ");
+  Serial.print(((unsigned int)my2450.voltChB()) >> 14);
+  Serial.print("     chC = ");
+  Serial.print(((unsigned int)my2450.voltChC()) >> 14);
+  Serial.print("     chD = ");
+  Serial.print(((unsigned int)my2450.voltChD()) >> 14);
+  Serial.print("        ");
+  delay(100);
+
+*/
+
+}
 
 
 
 
+/************ end ds2450 compass */
+
+/* ********************************  begin anemometer   */
+#include <DS2423.h>
+
+DeviceAddress counter = { 0x1D, 0xE4, 0x7E, 0x01, 0x0, 0x0, 0x0, 0x76 };
+//1D E4 7E 1 0 0 0 76
+
+ds2423 myCounter(&oneWire, counter);
+
+/*
+uint32_t a1 = 0;
+uint32_t a2 = 0;
+uint32_t b1 = 0;
+uint32_t b2 = 0;
+uint32_t diffA = 0;
+uint32_t diffB = 0;
+*/
+
+signed int a1 = 0;
+signed int a2 = 0;
+signed int b1 = 0;
+signed int b2 = 0;
+int diffA = 0;
+int diffB = 0;
+int secondsPerSample = 1;
+//float cupRadius = 2.875; //radius of cup rotation in inches
+float cupCirc = PI * (2 * 2.785); //circumference in inches
+float feetPerRev = cupCirc / 12;
+#define mile 5280
+
+/*
+void anemometerSetup()
+{
+  
+  Serial.begin(57600);
+  Serial.print("\ncupRadius=");
+  Serial.println(cupRadius, DEC);
+  Serial.print("cupCirc=");
+  Serial.println(cupCirc,DEC);
+  Serial.print("feetPerRev=");
+  Serial.println(feetPerRev,DEC);
+  Serial.print("secondsPerSample=");
+  Serial.println(secondsPerSample,DEC);
+}
+*/
+
+
+void grabWindspeed(void)
+{ 
+  oneWire.reset();
+  a1=(signed int)myCounter.readCounter(1);
+  b1=(signed int)myCounter.readCounter(2);
+  //delay(secondsPerSample * 1000);
+  //delay(10);
+  //a2=(signed int)myCounter.readCounter(1);
+  //b2=(signed int)myCounter.readCounter(2);
+
+  //diffA = abs (unsigned int)(a2-a1);
+  //diffB = abs (unsigned int)(b2-b1);
+  
+  /* A and B each get one count per RPM, 
+         therefore divide by two,
+         multiply by 60 seconds in a minute,
+         then divide by numer of seconds we sample
+  */
+  float rpm = float((diffA + diffB) /2) * 60 / secondsPerSample;
+  float mph = rpm * feetPerRev * 60 / mile;
+  /*
+  //Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");  
+  Serial.print("a1=");
+  Serial.print(a1,DEC);
+  //Serial.print(",a2=");
+  //Serial.print(a2,DEC);
+  Serial.print(",b1=");
+  Serial.print(b1,DEC);
+  //Serial.print(",b2=");
+  //Serial.print(b2,DEC);
+  //Serial.print("  A=");
+  //Serial.print(diffA);
+  //Serial.print(", B=");
+  //Serial.print(diffB);
+  */
+  Serial.print(", rpm=");
+  Serial.print(rpm);
+  Serial.print(", mph=");
+  Serial.println(mph);  
+  //Serial.println("             ");
+  //delay(secondsPerSample * 1000);
+  delay(100);
+}
 
 
 
+
+/* end anemometer */
 
 /**********************************
    DS18S20 Temperature chip i/o */
    
 
-#include <OneWire.h>
-OneWire ds(oneWirePin);
 int qsensors, HighByte, LowByte, TReading, SignBit, Tc_100, Whole, Fract, Tf_100, fWhole, fFract;
 
 byte smac[8];
@@ -618,16 +923,16 @@ float getDS18B20_Celsius() {
   byte data[12];
   byte addr[8];
   
-  if ( !ds.search(addr)) {
+  if ( !oneWire.search(addr)) {
     Serial.print(F("No more sensors\n"));
-    ds.reset_search();
+    oneWire.reset_search();
     delay(250);
     qsensors=0;
     return(-273.15);
   } else {
     qsensors++;
   }
-  ds.search(addr);
+  oneWire.search(addr);
   
   
   //dbgSerial.print("R=");
@@ -649,21 +954,21 @@ float getDS18B20_Celsius() {
 
   // The DallasTemperature library can do all this work for you!
 
-  ds.reset();
-  ds.select(addr);
-  ds.write(0x44,1);         // start conversion, with parasite power on at the end
+  oneWire.reset();
+  oneWire.select(addr);
+  oneWire.write(0x44,1);         // start conversion, with parasite power on at the end
   delay(800);     // maybe 750ms is enough, maybe not
-  // we might do a ds.depower() here, but the reset will take care of it.
+  // we might do a oneWire.depower() here, but the reset will take care of it.
   
-  present = ds.reset();
-  ds.select(addr);    
-  ds.write(0xBE);         // Read Scratchpad
+  present = oneWire.reset();
+  oneWire.select(addr);    
+  oneWire.write(0xBE);         // Read Scratchpad
 
   //dbgSerial.print("P=");
   //dbgSerial.print(present,HEX);
   //dbgSerial.print(" ");
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
-    data[i] = ds.read();
+    data[i] = oneWire.read();
     //dbgSerial.print(data[i], HEX);
     //dbgSerial.print(" ");
   }
@@ -764,7 +1069,7 @@ int availableMemory() {
 void setup()
 {
   Serial.begin(57600);
-  //chkMem();
+  chkMem();
   setupWatchdog();
   Serial.println(F("camController init...."));
   pinMode(actLed, OUTPUT);
@@ -775,6 +1080,8 @@ void setup()
   camSetup();
   sdCardSetup();
   rtcSetup();
+  compassSetup();
+  //anemometerSetup();
 }
 
 void sdCardSetup() {
@@ -841,6 +1148,7 @@ int bv = 0;
 
 void loop()
 {
+  delay(500);
   chkMem();
   str.begin();
   //Serial.println(Serial.available(), DEC);
@@ -850,9 +1158,12 @@ void loop()
   iterations++;
   ts = millis() / 1000;
   
-  float temp = getDS18B20_Fahrenheit();
+  //float temp = getDS18B20_Fahrenheit();
+  float temp= -273;
   //Serial << F("floaty fahrenheit reading is ") << temp << F("F") << endl;
 
+  grabCompass();
+  grabWindspeed();
 
   //chkMem();
   if (temp < -273 ) {
@@ -874,6 +1185,7 @@ void loop()
   str.print(batteryVolts,2); // doesnt work with << operator
   str << "V, i=" << iterations 
      << ", t=" << temp
+     << ", windDir=" << compassString
      << ", sun=" << photoLevel
      << ", lightOk=" << lightOkPrintable
      << ", battOk=" << battOkPrintable;
