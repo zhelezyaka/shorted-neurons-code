@@ -30,7 +30,7 @@ short currentMode = 0;
 #define bright0Mode 1
 #define bright1Mode 2
 #define bright2Mode 3
-#define lastMode 3
+#define lastMode 1
 #define idleTimeout 30
 
 const int opLed =  7;      // the number of the LED pin
@@ -328,9 +328,10 @@ void updateDisplayLazy() {
   }
 }
 
-#define brightOffLevel -4
+#define brightOffLevel -5
 
 void adjustBright(int disp) {
+  delay(100);
   trashBool = true;
   int i = 0;
   previousMillis=millis();
@@ -348,7 +349,10 @@ void adjustBright(int disp) {
       if ( i > -1) {
         Serial << "adjust disp" << disp << " to:" << i << endl;
         lc.shutdown(disp,false);
-        lc.setIntensity(disp,tempbright);
+        //lc.setIntensity(disp,tempbright);
+        lc.setIntensity(0,tempbright);
+        lc.setIntensity(1,tempbright);
+        lc.setIntensity(2,tempbright);
       } else {
         d=tempbright*tempbright;
         Serial << "disp in very dim mode, " << disp
@@ -378,7 +382,11 @@ void adjustBright(int disp) {
         currentMode++;
         Serial.println("exiting adjustBright due to btn1");
         delay(200);
-        config.bright[disp]=tempbright;
+        //config.bright[disp]=tempbright;
+        config.bright[0]=tempbright;
+        config.bright[1]=tempbright;
+        config.bright[2]=tempbright;
+        
         commit_config();
         updateDisplay();
         return;
@@ -387,26 +395,44 @@ void adjustBright(int disp) {
     
     // special case if in very dim modes
     if ( tempbright < 0 ) {
-      lc.setIntensity(disp, 0);
+      //lc.setIntensity(disp, 0);
+      lc.setIntensity(0, 0);
+      lc.setIntensity(1, 0);
+      lc.setIntensity(2, 0);
       if ( tempbright == brightOffLevel ) {
         Serial << "disp down to Off level, disp=" << disp
           << " to: OFF" << endl;
-        lc.shutdown(disp, true);
+        //lc.shutdown(disp, true);
+        lc.shutdown(0, true);
+        lc.shutdown(1, true);
+        lc.shutdown(2, true);
       } else {
         //Serial << "disp in very dim mode, " << disp
         //  << " to:" << tempbright << ", delayms=" << d << endl;
 
-        lc.shutdown(disp, true);
+        lc.shutdown(0, true);
+        lc.shutdown(1, true);
+        lc.shutdown(2, true);
         delay(d);
-        lc.shutdown(disp,false);
+        lc.shutdown(0,false);
+        lc.shutdown(1,false);
+        lc.shutdown(2,false);
         delay(1);
-        lc.shutdown(disp,true);
+        lc.shutdown(0, true);
+        lc.shutdown(1, true);
+        lc.shutdown(2, true);
         delay(d);
-        lc.shutdown(disp,false);
+        lc.shutdown(0,false);
+        lc.shutdown(1,false);
+        lc.shutdown(2,false);
         delay(1);
-        lc.shutdown(disp,true);
+        lc.shutdown(0, true);
+        lc.shutdown(1, true);
+        lc.shutdown(2, true); 
         delay(d);
-        lc.shutdown(disp,false);
+        lc.shutdown(0,false);
+        lc.shutdown(1,false);
+        lc.shutdown(2,false);
 
       }
     }
