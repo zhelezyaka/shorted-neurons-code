@@ -34,7 +34,7 @@ char rtcBuffer[RTCBUFFERSIZE];
 uint8_t bufferidx = 0;
 uint8_t fix = 0; // current fix data
 uint8_t i;
-PString rtcString(buffer2, sizeof(buffer2));
+PString rtcString(rtcBuffer, sizeof(rtcBuffer));
 
 /**********************************
     watchdog timer sleeping stuff  */
@@ -470,12 +470,12 @@ boolean brightEnough() {
       // changing from tooDark back to OK
       Serial.print(F("bright: tooDark->OK "));
       okToShoot = true;
-    } else {
-      Serial.print(F("bright: no change "));
+      //} else {
+      //  Serial.print(F("bright: no change "));
     }
   }
 
-  Serial.println(photoLevel);
+  //Serial.println(photoLevel);
 
   return(okToShoot);
   
@@ -582,7 +582,7 @@ void rtcTest () {
       rtcString << int(now.second());
     }
     
-    buffer2[rtcString.length()+1] = 0; // terminate it
+    rtcBuffer[rtcString.length()+1] = 0; // terminate it
 
 
 //    Serial.print(F(" unix= "));
@@ -861,37 +861,46 @@ void anemometerSetup()
 void grabWindspeed(void)
 { 
   oneWire.reset();
-  a1=(signed int)myCounter.readCounter(1);
-  b1=(signed int)myCounter.readCounter(2);
-  //delay(secondsPerSample * 1000);
-  //delay(10);
-  //a2=(signed int)myCounter.readCounter(1);
-  //b2=(signed int)myCounter.readCounter(2);
+  a1 = 255;
+  a2 = 255;
+  short tries=0;
+  while ((tries <= 10) && ((a1 >250) || (a2 > 250))) {
+    Serial << "windspeed tr=" << tries << " " ;
+    a1=(signed int)myCounter.readCounter(1);
+    //b1=(unsigned int)myCounter.readCounter(2);
+    delay(secondsPerSample * 1000);
+    //delay(10);
+    a2=(signed int)myCounter.readCounter(1);
+    //b2=(unsigned int)myCounter.readCounter(2);
+    tries ++;
+  }
 
-  //diffA = abs (unsigned int)(a2-a1);
-  //diffB = abs (unsigned int)(b2-b1);
+  diffA = abs(a2-a1);
+  //diffB = abs(b2-b1);
   
   /* A and B each get one count per RPM, 
          therefore divide by two,
          multiply by 60 seconds in a minute,
          then divide by numer of seconds we sample
   */
-  float rpm = float((diffA + diffB) /2) * 60 / secondsPerSample;
+  //float rpm = float((diffA + diffB) /2) * 60 / secondsPerSample;
+  float rpm = (float(diffA) /2) * 60 / secondsPerSample;
   float mph = rpm * feetPerRev * 60 / mile;
-  /*
+  
   //Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");  
   Serial.print("a1=");
   Serial.print(a1,DEC);
-  //Serial.print(",a2=");
-  //Serial.print(a2,DEC);
-  Serial.print(",b1=");
-  Serial.print(b1,DEC);
+  Serial.print(",a2=");
+  Serial.print(a2,DEC);
+  //Serial.print(",b1=");
+  //Serial.print(b1,DEC);
   //Serial.print(",b2=");
   //Serial.print(b2,DEC);
-  //Serial.print("  A=");
-  //Serial.print(diffA);
+  Serial.print("  A=");
+  Serial.print(diffA);
   //Serial.print(", B=");
   //Serial.print(diffB);
+  /*
   */
   Serial.print(", rpm=");
   Serial.print(rpm);
@@ -899,13 +908,136 @@ void grabWindspeed(void)
   Serial.println(mph);  
   //Serial.println("             ");
   //delay(secondsPerSample * 1000);
-  delay(100);
+  //delay(100);
 }
 
-
-
-
 /* end anemometer */
+
+/********************************* begin lib based temp ****/
+/*
+#include <DallasTemperature.h>
+
+// Data wire is plugged into port 2 on the Arduino
+#define ONE_WIRE_BUS 8
+#define TEMPERATURE_PRECISION 9
+
+// Pass our oneWire reference to Dallas Temperature. 
+DallasTemperature sensors(&oneWire);
+
+int numberOfDevices; // Number of temperature devices found
+
+DeviceAddress tempDeviceAddress; // We'll use this variable to store a found device address
+
+void sensorSetup()
+{
+
+  // Start up the library
+  sensors.begin();
+  
+  // Grab a count of devices on the wire
+  numberOfDevices = sensors.getDeviceCount();
+  
+  // locate devices on the bus
+  Serial.print("Locating devices...");
+  
+  Serial.print("Found ");
+  Serial.print(numberOfDevices, DEC);
+  Serial.println(" devices.");
+
+  // report parasite power requirements
+  Serial.print("Parasite power is: "); 
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
+  
+  // Loop through each device, print out address
+  for(int i=0;i<numberOfDevices; i++)
+  {
+    // Search the wire for address
+    if(sensors.getAddress(tempDeviceAddress, i))
+	{
+		Serial.print("Found device ");
+		Serial.print(i, DEC);
+		Serial.print(" with address: ");
+		printAddress(tempDeviceAddress);
+		Serial.println();
+		
+		Serial.print("Setting resolution to ");
+		Serial.println(TEMPERATURE_PRECISION,DEC);
+		
+		// set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
+		sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
+		
+		 Serial.print("Resolution actually set to: ");
+		Serial.print(sensors.getResolution(tempDeviceAddress), DEC); 
+		Serial.println();
+	}else{
+		Serial.print("Found ghost device at ");
+		Serial.print(i, DEC);
+		Serial.print(" but could not detect address. Check power and cabling");
+	}
+  }
+
+}
+
+// function to print the temperature for a device
+void printTemperature(DeviceAddress deviceAddress)
+{
+  // method 1 - slower
+  //Serial.print("Temp C: ");
+  //Serial.print(sensors.getTempC(deviceAddress));
+  //Serial.print(" Temp F: ");
+  //Serial.print(sensors.getTempF(deviceAddress)); // Makes a second call to getTempC and then converts to Fahrenheit
+
+  // method 2 - faster
+  float tempC = sensors.getTempC(deviceAddress);
+  Serial.print(":");
+  Serial.print(tempC);
+  Serial.print("C, ");
+  Serial.print(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
+  Serial.print("F   ");
+}
+
+void grabTemp(void)
+{ 
+  // call sensors.requestTemperatures() to issue a global temperature 
+  // request to all devices on the bus
+  //Serial.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+  //Serial.print("Requesting temperatures...");
+  sensors.requestTemperatures(); // Send the command to get temperatures
+  
+  
+  // Loop through each device, print out temperature data
+  for(int i=0;i<numberOfDevices; i++)
+  {
+    // Search the wire for address
+    if(sensors.getAddress(tempDeviceAddress, i))
+	{
+		// Output the device ID
+		Serial.print("  T");
+		Serial.print(i,DEC);
+		
+		// It responds almost immediately. Let's print out the data
+		printTemperature(tempDeviceAddress); // Use a simple function to print out the data
+	} 
+	//else ghost device! Check your power requirements and cabling
+	
+  }
+}
+
+// function to print a device address
+void printAddress(DeviceAddress deviceAddress)
+{
+  for (uint8_t i = 0; i < 8; i++)
+  {
+    if (deviceAddress[i] < 16) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+  }
+}
+
+*/
+
+/* end temp library based bits */
+
 
 /**********************************
    DS18S20 Temperature chip i/o */
@@ -1158,12 +1290,11 @@ void loop()
   iterations++;
   ts = millis() / 1000;
   
-  //float temp = getDS18B20_Fahrenheit();
-  float temp= -273;
+  float temp = getDS18B20_Fahrenheit();
   //Serial << F("floaty fahrenheit reading is ") << temp << F("F") << endl;
 
-  grabCompass();
-  grabWindspeed();
+  //grabCompass();
+  //grabWindspeed();
 
   //chkMem();
   if (temp < -273 ) {
