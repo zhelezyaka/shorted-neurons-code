@@ -30,6 +30,8 @@ short currentMode = 0;
 #define bright0Mode 1
 #define bright1Mode 2
 #define bright2Mode 3
+#define brightOffLevel -5
+#define minTimerInterval 3
 #define lastMode 1
 #define idleTimeout 30
 
@@ -99,7 +101,9 @@ template <class T> int EEPROM_readAnything(int ee, T& value)
 
 struct config_t
 {
-  short bright[3];
+  uint16_t eeprom_length;
+  uint64_t eeprom_checksum;
+  short bright[4];
   short blankHour;
   short blankMinute;
   short unblankHour;
@@ -112,16 +116,14 @@ struct config_t
   short homeOffset;
   short awayOffset;
   short homeDaylight;
-  short awayDaylight; 
+  short awayDaylight;
   short hoursTwelve;
   short leadingZeroes;
   short brightest;
   short dimmest;
+  short bMonth;
+  short bDay;
 } config;
-
-
-/* we always wait a bit between updates of the display */
-unsigned long delaytime=1000;
 
 
 //We always have to include the library
@@ -138,6 +140,18 @@ unsigned long delaytime=1000;
 //LedControl ledbar=LedControl(13,12,11,1);
 LedControl lc=LedControl(13,12,11,3);
 
+
+#include <MsTimer2.h>
+void toggle() {
+    digitalWrite(errLed, HIGH); 
+    lc.shutdown(0,false);
+    lc.shutdown(1,false);
+    lc.shutdown(2,false);
+    lc.shutdown(0, true);
+    lc.shutdown(1, true);
+    lc.shutdown(2, true);
+    digitalWrite(errLed, LOW); 
+}
 
 
 
@@ -180,7 +194,7 @@ void rtcGrab () {
     rtcString.begin();
     
     unixtime = now.unixtime();
-    now = unixtime + dstOffset;
+    now = unixtime + (config.homeDaylight * 3600);
     unixtime = now.unixtime(); // get unixtime back again so that it matches offsetted "now".
     
     second = now.second();
@@ -247,19 +261,25 @@ void setup() {
   Serial << "config.bright[0] = " << config.bright[0] << endl;
   Serial << "config.bright[1] = " << config.bright[1] << endl;
   Serial << "config.bright[2] = " << config.bright[2] << endl;
+  Serial << "config.homeDaylight = " << config.homeDaylight << endl;
   
-  digitalWrite(errLed, HIGH);
 
   for(int i = 0; i < 3; i++) {  
     if (config.bright[i] < 0) {
       // start up blank... very dim mode handled later by loop
-      lc.shutdown(i, true);
+      lc.setIntensity(i, 0);
+      if (config.bright[i] == brightOffLevel ) {
+        lc.shutdown(i, true);
+      } else {
+        lc.shutdown(i, false);
+      }
+
     } else {
+      // Set the brightness to a medium values
+      lc.setIntensity(i,config.bright[i]);
       // The MAX72XX is in power-saving mode on startup,
       // we have to do a wakeup call
       lc.shutdown(i,false);
-      // Set the brightness to a medium values
-      lc.setIntensity(i,config.bright[i]);
     }
   }
   // and clear the display
@@ -276,6 +296,16 @@ void setup() {
   lc.clearDisplay(2);
 
   rtcSetup(); 
+  rtcGrab();
+  updateDisplay();
+
+  if (config.bright[0] < 0) {
+    int b = config.bright[0] * config.bright[0];
+    if (b < minTimerInterval) b=minTimerInterval;
+    MsTimer2::set(b, toggle); // use timer to keep displays shut off, but every d milliseconds turn em on for 1ms or so
+    MsTimer2::start();
+
+  }
 
 }
 
@@ -329,7 +359,7 @@ void updateDisplay() {
   lc.setRow(0,0, byte(unixtime));
   
   // update this so the next updateDisplayLazy will do what we expect
-  lastsecs = second;
+  lastsecs = -1;
 
 }
 
@@ -344,7 +374,51 @@ void updateDisplayLazy() {
   }
 }
 
-#define brightOffLevel -5
+
+/*
+void dimDown() {
+  // special case if in very dim modes
+    if ( config.bright[0] < 0 ) {
+      //lc.setIntensity(disp, 0);
+      lc.setIntensity(0, 0);
+      lc.setIntensity(1, 0);
+      lc.setIntensity(2, 0);
+      if ( config.bright[0] == brightOffLevel ) {
+        //Serial << "disp down to Off level"
+        //lc.shutdown(disp, true);
+        lc.shutdown(0, true);
+        lc.shutdown(1, true);
+        lc.shutdown(2, true);
+      } else {
+        
+        short d = config.bright[0] * config.bright[0];
+        
+        //Serial << "disp in very dim mode, brightness=" 
+        //  << config.bright[0] << ", delayms=" << d << endl;
+        for (int i = 0; i < 200; i++) {
+          lc.shutdown(0, true);
+          lc.shutdown(1, true);
+          lc.shutdown(2, true);
+          delay(d);
+          lc.shutdown(0,false);
+          lc.shutdown(1,false);
+          lc.shutdown(2,false);
+          delay(1);
+          lc.shutdown(0, true);
+          lc.shutdown(1, true);
+          lc.shutdown(2, true);
+        }
+      }
+    } else {
+      lc.shutdown(0,false);
+      lc.shutdown(1,false);
+      lc.shutdown(2,false);
+    }
+}
+*/
+
+
+int d=0;
 
 void adjustBright(int disp) {
   delay(100);
@@ -352,8 +426,14 @@ void adjustBright(int disp) {
   int i = 0;
   previousMillis=millis();
   int tempbright = config.bright[disp];
-  int d=0;
 
+  MsTimer2::stop();
+  lc.shutdown(0,false);
+  lc.shutdown(1,false);
+  lc.shutdown(2,false);
+  rtcGrab();
+  updateDisplayLazy();
+    
   while(trashBool && (((millis() - previousMillis)/1000) < idleTimeout)) {
     i = knob.checkRotaryEncoder();
     if (i != 0) {
@@ -371,8 +451,7 @@ void adjustBright(int disp) {
         lc.setIntensity(2,tempbright);
       } else {
         d=tempbright*tempbright;
-        Serial << "disp in very dim mode, " << disp
-          << " to:" << tempbright << ", delayms=" << d << endl;
+        if (d < minTimerInterval) d=minTimerInterval;
       }
     }
 
@@ -382,7 +461,7 @@ void adjustBright(int disp) {
         //ok, its really down, exit
         trashBool=false;
         currentMode=defaultMode;
-        Serial.println("exiting adjustBright due to btn2");
+        Serial.println("exiting adjustBright due to btn2 (cancel)");
         //delay(200);
         updateDisplay();
         lc.setIntensity(disp,config.bright[disp]);
@@ -405,6 +484,25 @@ void adjustBright(int disp) {
         
         commit_config();
         updateDisplay();
+        if ( tempbright < 0 ) {
+          //lc.setIntensity(disp, 0);
+          lc.setIntensity(0, 0);
+          lc.setIntensity(1, 0);
+          lc.setIntensity(2, 0);
+          if ( tempbright == brightOffLevel ) {
+            Serial << "disp down to Off level, disp=" << disp
+              << " to: OFF" << endl;
+            //lc.shutdown(disp, true);
+            lc.shutdown(0, true);
+            lc.shutdown(1, true);
+            lc.shutdown(2, true);
+          } else {
+            Serial << "disp in very dim mode, starting MsTimer2, ms= " << d << endl;
+            MsTimer2::set(d, toggle); // use timer to keep displays shut off, but every d milliseconds turn em on for 1ms or so
+            MsTimer2::start();
+          }
+        }
+
         return;
       }
     }
@@ -425,31 +523,24 @@ void adjustBright(int disp) {
       } else {
         //Serial << "disp in very dim mode, " << disp
         //  << " to:" << tempbright << ", delayms=" << d << endl;
-
-        lc.shutdown(0, true);
-        lc.shutdown(1, true);
-        lc.shutdown(2, true);
-        delay(d);
-        lc.shutdown(0,false);
-        lc.shutdown(1,false);
-        lc.shutdown(2,false);
-        delay(1);
-        lc.shutdown(0, true);
-        lc.shutdown(1, true);
-        lc.shutdown(2, true);
-        delay(d);
-        lc.shutdown(0,false);
-        lc.shutdown(1,false);
-        lc.shutdown(2,false);
-        delay(1);
-        lc.shutdown(0, true);
-        lc.shutdown(1, true);
-        lc.shutdown(2, true); 
-        delay(d);
-        lc.shutdown(0,false);
-        lc.shutdown(1,false);
-        lc.shutdown(2,false);
-
+        Serial << "disp in very dim mode, " << disp
+          << " to:" << tempbright << ", delayms=" << d << endl;
+          lc.shutdown(0, true);
+          lc.shutdown(1, true);
+          lc.shutdown(2, true);
+          delay(d);
+          lc.shutdown(0,false);
+          lc.shutdown(1,false);
+          lc.shutdown(2,false);
+          delay(1);
+          lc.shutdown(0, true);
+          lc.shutdown(1, true);
+          lc.shutdown(2, true);
+          delay(d);
+          lc.shutdown(0,false);
+          lc.shutdown(1,false);
+          lc.shutdown(2,false);
+          delay(1);
       }
     }
   }
@@ -462,11 +553,15 @@ void adjustBright(int disp) {
 
 
 
+
+
+
 void loop() { 
-  digitalWrite(errLed, HIGH);
+
   if (currentMode > lastMode) currentMode = defaultMode; //reset on overflow
 
   if (currentMode != 0 ) Serial << "mode=" << currentMode << endl;
+
   switch (currentMode) {
     case bright0Mode:
       adjustBright(0);
@@ -493,25 +588,23 @@ void loop() {
     if (currentMode > lastMode) currentMode = defaultMode; //reset on overflow
   }
 
+
   if (! digitalRead(btn2)) {
     delay(500); //debounce
     if (! digitalRead(btn2)) {
       
-      if (dstOffset > 0) { 
-        dstOffset = 0;
+      if (config.homeDaylight != 0) { 
+        config.homeDaylight = 0;
         Serial.println("dstOffset now 0");
       } else {
-        dstOffset = 3600;
+        config.homeDaylight = 1;
         Serial.println("dstOffset now 1 hour");
       }
+      commit_config();
     }
   }
- 
   
-  periodCount += knob.checkRotaryEncoder();
-  digitalWrite(errLed, LOW); 
   rtcGrab();
-
 }
 
 
