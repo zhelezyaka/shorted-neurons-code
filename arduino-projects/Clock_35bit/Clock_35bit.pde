@@ -20,7 +20,6 @@ boolean trashBool = false;
 #define dimTime 20
 #define oneSec 500
 
-#define btnPin 2
 #define btn1 3
 #define btn2 4
 
@@ -245,7 +244,6 @@ void rtcGrab () {
 
 void setup() {
   Serial.begin(57600);
-  pinMode(btnPin, INPUT);
   pinMode(btn1, INPUT);
   pinMode(btn2, INPUT);
   digitalWrite(btn1, HIGH);
