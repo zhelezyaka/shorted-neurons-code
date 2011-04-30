@@ -27,7 +27,8 @@ void checkButtons() {
 	if (!digitalRead(btn1)) {
 		Serial.println(F("btn1 is depressed"));
 		dmesg(39010);
-  		play_rtttl(song1);
+  		//play_rtttl(song1);
+                play_rtttl(song1);
 	}
 	if (!digitalRead(btn2)) {
 		Serial.println(F("btn2 is depressed"));
@@ -794,7 +795,7 @@ void updateBrightness() {
     //brightness = brightness *2;
     //if(brightness > 15 ) brightness = 15;
     //if(brightness < 0 ) brightness = 0;
-  
+#define BRIGHTNESS_DEBUG  
 #ifdef BRIGHTNESS_DEBUG
     // print the results to the serial monitor:
     Serial.print("sensor = " );                       
