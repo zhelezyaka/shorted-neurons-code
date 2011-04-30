@@ -354,9 +354,9 @@ void setup() {
   digitalWrite(rtcInterruptPin, HIGH); //turn on pullup
   pinMode(opLed, OUTPUT);
   pinMode(errLed, OUTPUT);
-  pinMode(rLed, OUTPUT);
-  pinMode(gLed, OUTPUT);
-  pinMode(bLed, OUTPUT);
+//  pinMode(rLed, OUTPUT);
+//  pinMode(gLed, OUTPUT);
+//  pinMode(bLed, OUTPUT);
   dmesg(5);
   
 
