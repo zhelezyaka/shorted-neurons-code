@@ -308,7 +308,7 @@ void single() {
       //delay(singleTime);
       //Serial.print(col);
       LEDs.setLed(a,row,col,true);
-      delay(singleTime*3);
+      delay(singleTime);
       LEDs.setLed(a,row,col,false);
 /*      for(int i=0;i<col;i++) {
         rgb.setLed(0,row,col,false);
@@ -579,6 +579,9 @@ void wmesg(long v) {
 
 void dmesg(long v) {
 
+#ifdef DEBUG_DMESG_TO_SERIAL
+    Serial << "dmesg: " << v << endl;
+#endif
 #ifdef TARGET_FLOWERCLOCK
     int ones;
     int tens;
