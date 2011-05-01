@@ -159,12 +159,12 @@ void rtcGrab() {
 
   // hours digiting
 
-  homeHour=hour + homeOffset;
+  homeHour=hour + homeOffset + config.homeDaylight;
   if (homeHour > 23) homeHour = homeHour - 24;
   if (homeHour < 0) homeHour = homeHour + 24;
 
 
-  awayHour=hour + awayOffset;
+  awayHour=hour + awayOffset + config.awayDaylight;
 
   if (awayHour > 23) awayHour = awayHour - 24;
   if (awayHour < 0) awayHour = awayHour + 24;
@@ -230,6 +230,16 @@ void rtcGrab() {
     digits[6] = digMap[mins1];
     digits[7] = digMap[mins2];
     
+#endif
+
+#ifdef TARGET_35BITCLOCK
+	if ( secs2 % 2) {
+		colon1 = B10000000;
+//		colon2 = B00000000;
+	} else {
+		colon1 = B00000000;
+//		colon2 = B00000001;
+	}
 #endif
 
     if (second != previousSecond && (second % colorInterval == 0)) {
@@ -512,7 +522,7 @@ void serviceClock() {
   Wire.endTransmission();
  
   dmesg(85999);
-  digitalWrite(13, LOW);
+  digitalWrite(errLed, LOW);
   rtcInterrupt = false;
   attachInterrupt(0, clockInterrupt, FALLING);
 }
