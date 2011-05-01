@@ -116,8 +116,9 @@ void rtcGrab() {
 
     if (hour > 23 || minute > 59 || second > 59 || month > 12 || dayOfMonth > 31 || year >> 99 || dayOfWeek > 7) {
       errs++; 
-      Serial.print("error #");
+      Serial.print("RTC error #");
       Serial.print(errs, DEC);
+#ifdef RTCDEBUG      
       Serial.print(", data= ");
       Serial.print(hour, DEC);
       Serial.print(":");
@@ -132,7 +133,7 @@ void rtcGrab() {
       Serial.print(year, DEC);
       Serial.print("  Day_of_week:");
       Serial.println(dayOfWeek, DEC);
-    
+#endif
     } else {
 #ifdef RTCDEBUG
       Serial.print(", data= ");
@@ -211,6 +212,7 @@ void rtcGrab() {
 
 //  LEDs.setDigit(0,0,hrs1,false);
 
+#ifdef TARGET_FLOWERCLOCK
 	if ( secs2 % 2) {
 		colon1 = B00000001;
 		colon2 = B00000000;
@@ -219,7 +221,6 @@ void rtcGrab() {
 		colon2 = B00000001;
 	}
 
-	
     digits[0] = digMap[hrs1];
     digits[1] = (digMap[hrs2] | colon1);
     digits[2] = digMap[mins1];
@@ -228,6 +229,8 @@ void rtcGrab() {
     digits[5] = (digMap[hrs4] | colon2);
     digits[6] = digMap[mins1];
     digits[7] = digMap[mins2];
+    
+#endif
 
     if (second != previousSecond && (second % colorInterval == 0)) {
 		setPrettyColors();

@@ -322,12 +322,15 @@ B00011100;
   dmesg(56999);
 }
 
+
+#ifdef COLORDEBUGS
 /*
   This function lights up a some Leds in a column.
  The pattern will be repeated on every column.
  The pattern will blink along with the column-number.
  column number 4 (index==3) will blink 4 times etc.
  */
+
 void columns() {
 
   if ( (periodCount % 10) == 0 ) {
@@ -376,22 +379,8 @@ void columns() {
 	33205 = front flwoer green
 	33206 = front flower blue
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 */
+#endif
 
 #define maxLength 30
 
@@ -543,6 +532,8 @@ void wmesg(long v) {
 }
 
 void dmesg(long v) {
+
+#ifdef TARGET_FLOWERCLOCK
     int ones;
     int tens;
     int hundreds;
@@ -575,6 +566,7 @@ void dmesg(long v) {
     debug.setDigit(0,2,(byte)hundreds,false);
     debug.setDigit(0,3,(byte)tens,false);
     debug.setDigit(0,4,(byte)ones,false);
+#endif
 
 }
 
@@ -584,31 +576,7 @@ void dmesg(long v) {
 
 
 
-void updateDisplay() {
-  
-/*  LEDs.setColumn(0,0,digMap[0]);
-  LEDs.setColumn(0,1,digMap[1]);
-  LEDs.setColumn(0,2,digMap[2]);
-  LEDs.setColumn(0,3,digMap[3]);
-  LEDs.setColumn(0,4,digMap[4]);
-  LEDs.setColumn(0,5,digMap[5]);
-  LEDs.setColumn(0,6,digMap[6]);
-  LEDs.setColumn(0,7,digMap[7]);
-    LEDs.setColumn(0,8,digMap[8]);
-  delay(200);
-*/
-  LEDs.setColumn(1,0,digMap[((periodCount / 1000) % 10)]);
-  LEDs.setColumn(1,1,digMap[((periodCount / 100) % 10)]);
-  LEDs.setColumn(1,2,digMap[((periodCount / 10) % 10)]);
-  LEDs.setColumn(1,3,digMap[(periodCount % 10)]);
-  LEDs.setColumn(1,4,digMap[((periodCount / 1000) % 10)]);
-  LEDs.setColumn(1,5,digMap[((periodCount / 100) % 10)]);
-  LEDs.setColumn(1,6,digMap[((periodCount / 10) % 10)]);
-  LEDs.setColumn(1,7,digMap[(periodCount % 10)]);
 
-
-
-}
 
 
 void setFlower(byte color) {
@@ -700,11 +668,49 @@ void setStartupColors() {
 }
 
 void updateLEDs() {
+#ifdef TARGET_FLOWERCLOCK
 	for(i=0;i<8;i++) {
         	LEDs.setRow(flowerLEDs,i,frontLEDs[i]);
         	LEDs.setRow(rearLEDs,i,backLEDs[i]);
         	LEDs.setColumn(clockDigits,i,digits[i]);
 	}
+#endif
+
+#ifdef TARGET_35BITCLOCK
+    for(i=0;i<8;i++) {
+    	LEDs.setRow(flowerLEDs,i,frontLEDs[i]);
+    	//LEDs.setRow(rearLEDs,i,backLEDs[i]);
+    }
+    
+    // special cases for first digit blanking.  not elegant
+    // first is "home" time
+    if (hrs3 < 10) {
+      LEDs.setDigit(clockDigits, 0, hrs3, false);
+    } else {
+      LEDs.setChar(clockDigits, 0, ' ', false);
+    }
+
+    // next is "away" time
+    if (hrs1 < 10) {
+      LEDs.setDigit(debugDigits, 0, hrs1, false);
+    } else {
+      LEDs.setChar(debugDigits, 0, ' ', false);
+    }
+    
+    //now all the rest
+    LEDs.setDigit(clockDigits, 1, hrs4, false);
+    LEDs.setDigit(debugDigits, 1, hrs2, false);
+    LEDs.setDigit(clockDigits, 2, mins1, false);
+    LEDs.setDigit(clockDigits, 3, mins2, false);
+    //decimal
+    LEDs.setChar(debugDigits, 2, ' ', true);
+    LEDs.setDigit(debugDigits, 3, mins1, false);
+    LEDs.setDigit(debugDigits, 4, mins2, false);
+    LEDs.setDigit(clockDigits, 4, secs1, false);
+    LEDs.setDigit(clockDigits, 5, secs2, false);
+
+#endif
+
 
 }
 
