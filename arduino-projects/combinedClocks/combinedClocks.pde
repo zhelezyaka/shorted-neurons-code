@@ -1,4 +1,6 @@
 #define TARGET_35BITCLOCK
+//#define DEBUG_DMESG_TO_SERIAL
+//#define MEMDEBUG 1
 
 #include <stdio.h>
 #include "RotaryEncoder.h"
@@ -121,7 +123,7 @@ void commit_config()
 #define btn1 3
 #define btn2 4
 #define debugDigits 1
-#define rearLEDs 4
+#define rearLEDs 1
 #define clockDigits 2
 #define flowerLEDs 0
 #define spkPin 5
@@ -138,13 +140,14 @@ void commit_config()
 #define digitsPower 10
 #define shinerPower 10
 #define flowerPower 10
-#define rearPower 0
+#define rearPower 10
 
 #endif
 
 RotaryEncoder knob(h1pin,h2pin,h3pin);
 
 #define digitOnTime 0
+#define waitForChips 2
 #define dimTime 20
 #define helloTime 250
 #define oneSec 500
@@ -292,7 +295,7 @@ boolean leadingZeroes = false;
 
 
 /* we always wait a bit between updates of the display */
-const int delaytime=1000;
+#define delaytime 1000
 
 int lastRotary = 0;
 int nowRotary = 0;
@@ -306,8 +309,6 @@ int lastf = 0;
  startup and loop below
 */
 
-#define waitForChips 2
-//#define MEMDEBUG 1
 
 void setup() {
   delay(waitForChips);
@@ -333,16 +334,17 @@ void setup() {
 
   EEPROM_readAnything(0, config);
   dmesg(2);
-  Serial.println("config read from EEPROM:");
-  Serial << "config.bright[0] = " << config.bright[0] << endl;
-  Serial << "config.bright[1] = " << config.bright[1] << endl;
-  Serial << "config.bright[2] = " << config.bright[2] << endl;
-  Serial << "config.homeDaylight = " << config.homeDaylight << endl;
-  Serial << "config.awayDaylight = " << config.awayDaylight << endl;
+  Serial.println(F("config read from EEPROM:"));
+  Serial << F("config.bright[0] = ") << config.bright[0] << endl;
+  Serial << F("config.bright[1] = ") << config.bright[1] << endl;
+  Serial << F("config.bright[2] = ") << config.bright[2] << endl;
+  Serial << F("config.homeDaylight = ") << config.homeDaylight << endl;
+  Serial << F("config.awayDaylight = ") << config.awayDaylight << endl;
 
   
   // Set the brightness to a medium values
   debug.setIntensity(0,debugPower);
+  
   LEDs.setIntensity(rearLEDs,rearPower);
   LEDs.setIntensity(clockDigits,digitsPower);
   LEDs.setIntensity(flowerLEDs,flowerPower);
@@ -429,9 +431,11 @@ void loop() {
   dmesg(10010);
   if (rtcInterrupt) {
   	dmesg(10015);
+        //Serial.print(F("RTC chip interrupt, needs service: "));
+        Serial.print(F("RTC interrupt: "));
 	serviceClock();
   } else {
-        Serial.print(".");
+        //Serial.print(".");
   	dmesg(10019);
   }
 
@@ -443,7 +447,7 @@ void loop() {
   }
 
   dmesg(10040);
-  rtcGrab();  
+  //rtcGrab();  
 
   dmesg(10050);
   updateLEDs();

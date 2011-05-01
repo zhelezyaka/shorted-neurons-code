@@ -2,6 +2,7 @@
 #include "Wire.h"
 #include "RTClib.h"
 #define DS3232_I2C_ADDRESS 0x68
+#define DEBUG_RTC false
 
 // Convert normal decimal numbers to binary coded decimal
 byte decToBcd(byte val) {
@@ -251,6 +252,26 @@ void rtcGrab() {
 //  } else {
 //    Serial.println("interval not passed"); 
 //  }
+    Serial.print("home=");
+    Serial.print(homeHour, DEC);
+    Serial.print(":");
+    Serial.print(minute, DEC);
+    Serial.print(":");
+    Serial.print(second, DEC);
+    Serial.print(", ");
+    Serial.print(year, DEC);
+    Serial.print(month, DEC);
+    Serial.print(dayOfMonth, DEC);
+    Serial.print("  Day_of_week:");
+    Serial.print(dayOfWeek, DEC);
+    Serial.print(", away=");
+    Serial.print(awayHour, DEC);
+    Serial.print(":");
+    Serial.print(minute, DEC);
+    Serial.print(":");
+    Serial.println(second, DEC);
+
+    
 
 }
 
@@ -266,20 +287,20 @@ void checkAlarms() {
   
     byte reg0E = Wire.receive();
     dmesg(83250);
-    Serial.print(F("status register bits are:"));
-    Serial.println(reg0E, BIN);
+    if (DEBUG_RTC) Serial.print(F("status register bits are:"));
+    if (DEBUG_RTC) Serial.println(reg0E, BIN);
     
     
     byte on = B00001001;
     byte off = B00000000;
   
     if ( reg0E == on ) {
-      Serial.println(F("alarm flag was ON"));
+            if (DEBUG_RTC) Serial.println(F("alarm flag was ON"));
       dmesg(83801);
-      Serial.print(F("status register bits are:"));
+      if (DEBUG_RTC) Serial.print(F("status register bits are:"));
     } else {
       if ( reg0E == off ) {
-        Serial.println(F("no alarm"));
+        //Serial.println(F("no alarm"));
         dmesg(83802);
       } else {
         Serial.print(F("EEEEEEEK, was neither!  panic: "));
@@ -428,9 +449,9 @@ void serviceClock() {
   for (int r = 0; r < 20; r++) { 
     dmesg(85210+r);
     byte reg0E = Wire.receive();
-    Serial.print(r, HEX);
-    Serial.print(F(" hex, register bits are:"));
-    Serial.println(reg0E, BIN);
+    if (DEBUG_RTC) Serial.print(r, HEX);
+    if (DEBUG_RTC) Serial.print(F(" hex, register bits are:"));
+    if (DEBUG_RTC) Serial.println(reg0E, BIN);
   }
 
 /*  Wire.requestFrom(DS3232_I2C_ADDRESS, 2);
@@ -486,8 +507,8 @@ void serviceClock() {
   
   dmesg(85500);
   byte reg0E = Wire.receive();
-  Serial.print(F("status register bits are:"));
-  Serial.println(reg0E, BIN);
+  if (DEBUG_RTC) Serial.print(F("status register bits are:"));
+  if (DEBUG_RTC) Serial.println(reg0E, BIN);
   
   
   byte on = B00001001;
@@ -496,11 +517,11 @@ void serviceClock() {
 
   dmesg(85600);
   if ( reg0E == on ) {
-    Serial.println(F("alarm register 0E flag was ON, setting to off"));
+    if (DEBUG_RTC) Serial.println(F("alarm register 0E flag was ON, setting to off"));
     setTo = off;
   } else {
     if ( reg0E == off ) {
-      Serial.println(F("no alarm"));
+      if (DEBUG_RTC) Serial.println(F("no alarm"));
     } else {
       Serial.print(F("EEEEEEEK, was neither!  panic: "));
       Serial.println(reg0E, BIN);
@@ -512,14 +533,17 @@ void serviceClock() {
   setTo = off;
 
   dmesg(85700);
-  Serial.print(F("0x0Fh bits being set is:"));
-  Serial.println(setTo, BIN);
+  if (DEBUG_RTC) Serial.print(F("0x0Fh bits being set is:"));
+  if (DEBUG_RTC) Serial.println(setTo, BIN);
   
   Wire.beginTransmission(DS3232_I2C_ADDRESS);
 
   Wire.send(0x0F);
   Wire.send(setTo);
   Wire.endTransmission();
+ 
+  dmesg(85800); 
+  rtcGrab();
  
   dmesg(85999);
   digitalWrite(errLed, LOW);
