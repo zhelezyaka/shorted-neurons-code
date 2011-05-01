@@ -95,6 +95,8 @@ struct config_t
 #define photoResistor A0
 #define opLed 6
 #define errLed 6
+#define homeOffset 0
+#define awayOffset -7
 
 #endif
 
@@ -105,10 +107,10 @@ struct config_t
 #define btnPin 2
 #define btn1 3
 #define btn2 4
-#define debugDigits 0
-#define rearLEDs 0
-#define clockDigits 1
-#define flowerLEDs 2
+#define debugDigits 1
+#define rearLEDs 4
+#define clockDigits 2
+#define flowerLEDs 0
 #define spkPin 5
 #define h1pin 6
 #define h2pin 10
@@ -116,6 +118,8 @@ struct config_t
 #define photoResistor A0
 #define opLed 7
 #define errLed 8
+#define homeOffset 0
+#define awayOffset +7
 
 #endif
 
@@ -126,8 +130,6 @@ RotaryEncoder knob(h1pin,h2pin,h3pin);
 #define helloTime 250
 #define oneSec 500
 #define blank B00000000
-#define homeOffset 0
-#define awayOffset -7
 #define colorInterval 10
 
 
@@ -190,10 +192,6 @@ byte flowerMap[] = {
   RED, WHITE, BLUE, RED, WHITE, BLUE, RED, WHITE,
   YELLOW, MAGENTA, YELLOW, MAGENTA, YELLOW, MAGENTA, YELLOW, MAGENTA, 
   BLUE, RED, WHITE, BLUE, RED, WHITE, BLUE, OFF,
-  BLUE, RED, WHITE, BLUE, RED, WHITE, BLUE, OFF,
-  BLUE, RED, WHITE, BLUE, RED, WHITE, BLUE, OFF,
-  BLUE, RED, WHITE, BLUE, RED, WHITE, BLUE, OFF,
-  BLUE, RED, WHITE, BLUE, RED, WHITE, BLUE, OFF,
 };
 
 byte frontLEDs[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -229,17 +227,6 @@ byte charMap[] = {
   B00000010,  //z (none)
   B00000001, //.
   B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
-  B00000001, //.
   B00000001 //.
 };
 
@@ -255,8 +242,6 @@ int opLedState = LOW;
 int colons = 0;
 
 long previousMillis = 0;
-volatile long periodCount = 0;
-volatile long nowCount = 0;
 volatile byte flowerState = 1;
 volatile byte rearState = 1;
 volatile byte shinerState = 1;
@@ -265,7 +250,6 @@ volatile boolean rtcInterrupt = false;
 
 
 
-volatile long starttime = 94702;
 int seconds = 50;
 int minutes = 59;
 int hours = 0;
@@ -310,7 +294,8 @@ int lastf = 0;
 */
 
 #define waitForChips 2
-#define MEMDEBUG 1
+//#define MEMDEBUG 1
+
 void setup() {
   delay(waitForChips);
   // The MAX72XX is in power-saving mode on startup,
