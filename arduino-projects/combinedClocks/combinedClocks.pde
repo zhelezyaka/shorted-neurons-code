@@ -63,6 +63,14 @@ struct config_t
   short bDay;
 } config;
 
+void commit_config()
+{
+
+  Serial.println("saving!");
+  EEPROM_writeAnything(0, config);
+
+}
+
 
 
 
@@ -97,6 +105,11 @@ struct config_t
 #define errLed 6
 #define homeOffset 0
 #define awayOffset -7
+#define debugPower 10
+#define digitsPower 15
+#define shinerPower 0
+#define flowerPower 0
+#define rearPower 1
 
 #endif
 
@@ -120,6 +133,12 @@ struct config_t
 #define errLed 8
 #define homeOffset 0
 #define awayOffset +7
+
+#define debugPower 10
+#define digitsPower 10
+#define shinerPower 10
+#define flowerPower 10
+#define rearPower 0
 
 #endif
 
@@ -232,12 +251,6 @@ byte charMap[] = {
 
 const int timer = 1000;           // The higher the number, the slower the timing.
 
-int debugPower = 10;
-int digitsPower = 15;
-int shinerPower = 0;
-int flowerPower = 0;
-int rearPower = 1;
-
 int opLedState = LOW;
 int colons = 0;
 
@@ -317,6 +330,16 @@ void setup() {
 
   Serial.begin(57600);
   dmesg(1);
+
+  EEPROM_readAnything(0, config);
+  dmesg(2);
+  Serial.println("config read from EEPROM:");
+  Serial << "config.bright[0] = " << config.bright[0] << endl;
+  Serial << "config.bright[1] = " << config.bright[1] << endl;
+  Serial << "config.bright[2] = " << config.bright[2] << endl;
+  Serial << "config.homeDaylight = " << config.homeDaylight << endl;
+  Serial << "config.awayDaylight = " << config.awayDaylight << endl;
+
   
   // Set the brightness to a medium values
   debug.setIntensity(0,debugPower);
@@ -324,13 +347,13 @@ void setup() {
   LEDs.setIntensity(clockDigits,digitsPower);
   LEDs.setIntensity(flowerLEDs,flowerPower);
 
-  dmesg(2);
+  dmesg(3);
   rotarySetup();
 
-  dmesg(3);
+  dmesg(4);
   rtcSetup(); 
 
-  dmesg(4);
+  dmesg(5);
   setAlarms();  
   //rtcGrab(); 
 
@@ -342,7 +365,7 @@ void setup() {
 //  pinMode(rLed, OUTPUT);
 //  pinMode(gLed, OUTPUT);
 //  pinMode(bLed, OUTPUT);
-  dmesg(5);
+  dmesg(6);
   
 
   delay(waitForChips);
@@ -361,7 +384,7 @@ void setup() {
   debug.shutdown(0,false);
   delay(helloTime);
   x = checkRotary();
-  dmesg(6);
+  dmesg(7);
   //LEDs.clearDisplay(1);
   delay(waitForChips);
   LEDs.shutdown(0,false);
@@ -370,10 +393,10 @@ void setup() {
   single();
   setStartupColors();
 
-  dmesg(7);
+  dmesg(8);
   RTTLsetup();
 
-  dmesg(8);
+  dmesg(9);
   serviceClock();
 
 

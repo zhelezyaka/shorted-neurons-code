@@ -24,6 +24,7 @@ int availableMemory() {
 
 void checkButtons() {
 	dmesg(39000);
+/*
 	if (!digitalRead(btn1)) {
 		Serial.println(F("btn1 is depressed"));
 		dmesg(39010);
@@ -35,6 +36,51 @@ void checkButtons() {
 		dmesg(39020);
   		play_rtttl(song4);
 	}
+*/
+
+  if (! digitalRead(btn1)) {
+    delay(3000); //debounce
+    if (! digitalRead(btn1)) {
+      
+      if (config.awayDaylight != 0) { 
+        config.awayDaylight = 0;
+        Serial.println(F("away dstOffset now 0"));
+      } else {
+        config.awayDaylight = 1;
+        Serial.println(F("away dstOffset now 1 hour"));
+      }
+      commit_config();
+      play_rtttl(songA);
+    } else {
+      // you didnt hold it down long enough, but we can play you a song...
+      dmesg(39010);
+      play_rtttl(songA);
+      
+    }
+  }
+
+
+  if (! digitalRead(btn2)) {
+    delay(3000); //debounce
+    if (! digitalRead(btn2)) {
+      
+      if (config.homeDaylight != 0) { 
+        config.homeDaylight = 0;
+        Serial.println(F("home dstOffset now 0"));
+      } else {
+        config.homeDaylight = 1;
+        Serial.println(F("home dstOffset now 1 hour"));
+      }
+      commit_config();
+      play_rtttl(songB);
+    } else {
+      // you didnt hold it down long enough, but we can play you a song...
+      dmesg(39020);
+      play_rtttl(songB);
+      
+    }
+  }
+
 
 }
 
@@ -703,7 +749,8 @@ void updateLEDs() {
     LEDs.setDigit(clockDigits, 2, mins1, false);
     LEDs.setDigit(clockDigits, 3, mins2, false);
     //decimal
-    LEDs.setChar(debugDigits, 2, ' ', true);
+    //LEDs.setChar(debugDigits, 2, colon1, true);
+    LEDs.setRow(debugDigits, 2, colon1);
     LEDs.setDigit(debugDigits, 3, mins1, false);
     LEDs.setDigit(debugDigits, 4, mins2, false);
     LEDs.setDigit(clockDigits, 4, secs1, false);
