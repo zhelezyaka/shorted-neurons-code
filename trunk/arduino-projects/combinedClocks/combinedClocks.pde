@@ -417,7 +417,7 @@ int lowLight=40;
 boolean colorShutoff=false;
 
 
-
+ 
 
 void loop() { 
   dmesg(10000);
