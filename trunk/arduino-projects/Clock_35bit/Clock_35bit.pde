@@ -260,7 +260,7 @@ void setup() {
   Serial << "config.bright[1] = " << config.bright[1] << endl;
   Serial << "config.bright[2] = " << config.bright[2] << endl;
   Serial << "config.homeDaylight = " << config.homeDaylight << endl;
-  
+  Serial << "config.awayDaylight = " << config.awayDaylight << endl;
 
   for(int i = 0; i < 3; i++) {  
     if (config.bright[i] < 0) {

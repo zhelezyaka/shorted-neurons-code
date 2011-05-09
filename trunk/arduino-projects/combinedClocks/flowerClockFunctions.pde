@@ -655,11 +655,12 @@ void setRear(byte color) {
 	dmesg(81100);
 	//Serial.print(", setRear now at ");
 	//Serial.println(color, BIN);
-
+#ifdef TARGET_FLOWERCLOCK
 	for(i=0;i<8;i++) {
-       		backLEDs[i] = (color << 2);
+       		 [i] = (color << 2);
 		dmesg(81110 + i);
 	}
+#endif
 
 }
 
@@ -864,19 +865,25 @@ void updateBrightness() {
       if (brightness == 0 || sensorValue < lowLight) {
 	if (!colorShutoff) {
 	  colorShutoff=true;
+#ifdef TARGET_FLOWERCLOCK
           LEDs.shutdown(rearLEDs,true);
+#endif
           LEDs.setIntensity(clockDigits,0);
           LEDs.shutdown(flowerLEDs,true);
 	}
       } else {
         
+#ifdef TARGET_FLOWERCLOCK
         LEDs.setIntensity(rearLEDs,brightness);
+#endif        
         LEDs.setIntensity(clockDigits,brightness);
         LEDs.setIntensity(flowerLEDs,brightness);
 	if (colorShutoff) {
           // turn it back on
 	  colorShutoff=false;
+#ifdef TARGET_FLOWERCLOCK
           LEDs.shutdown(rearLEDs,false);
+#endif
           LEDs.shutdown(flowerLEDs,false);
         }
       }

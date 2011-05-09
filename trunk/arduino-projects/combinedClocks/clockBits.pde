@@ -425,7 +425,7 @@ void setAlarms() {
 
 void clockInterrupt() {
   rtcInterrupt = true;
-  digitalWrite(13, HIGH);
+  digitalWrite(errLed, HIGH);
 }
 
 void serviceClock() {
