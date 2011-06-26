@@ -11,6 +11,7 @@
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 
+
 #define DATAFLASH   0   // check for presence of DataFlash memory on JeeLink
 #define FLASH_MBIT  16  // support for various dataflash sizes: 4/8/16 Mbit
 
