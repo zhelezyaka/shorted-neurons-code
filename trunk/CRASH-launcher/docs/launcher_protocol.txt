@@ -30,6 +30,7 @@ Command params
  -Channels to trigger
 -Safe - 2 Bytes @ 0
  -No params
+Total:4 bytes
 
 
 
@@ -44,7 +45,12 @@ Channel state
 Stats
 -Voltage - 1 Byte
 -Current - 1 Byte
+Padding - 1 byte
+Total: 8 bytes
 
 
 Conditions
--If no good commands received in 250ms, then auto-safe rack
+-When any channel is Armed, If no good commands received in 250ms, then auto-safe rack
+-If a rackUnit auto-safes himself, he must hear three SAFE SAFE SAFE
+broadcasts before he may receive an ARM command. 
+-what do "idle" rackUnits do with themselves?
