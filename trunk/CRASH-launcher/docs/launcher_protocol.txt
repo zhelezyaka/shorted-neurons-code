@@ -1,0 +1,50 @@
+Research
+-Receiver control command (bandwidth+modulation)
+-Current measurement
+-Remote/Self restart
+
+
+Inititialize
+-Control broadcasts
+
+Start in safe mode
+Must send status at least once
+Enter Arm mode
+Then fire
+
+To pad:
+
+Rack ID - 1 Byte
+Command - 1 Byte
+-Status
+-Arm
+-Fire
+-Safe
+Command params 
+-Status - 2 Bytes @ 0
+ -No params
+-Arm - 1 Byte selected + 1 Byte @ 0
+ -Channels selected
+-Fire - 1 Byte selected + 1 Byte trigger
+ -Channels selected
+ -Channels to trigger
+-Safe - 2 Bytes @ 0
+ -No params
+
+
+
+From rack:
+
+Rack ID - 1 Byte
+Command last seen - 1 Byte
+Channel state
+-Continuity - 1 Byte
+-Selected - 1 Byte
+-Firing - 1 Byte
+Stats
+-Voltage - 1 Byte
+-Current - 1 Byte
+
+
+Conditions
+-If no good commands received in 250ms, then auto-safe rack
