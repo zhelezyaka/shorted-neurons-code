@@ -65,8 +65,8 @@ void power_save()
   set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();
   power_adc_disable();
-  power_spi_disable();
-  power_twi_disable();
+//bts  power_spi_disable();
+//bts  power_twi_disable();
   //if (! modem_busy()) {  // Don't let timer 1 sleep if we're txing.
   //  power_timer1_disable();
   //}
@@ -142,9 +142,10 @@ Serial.println("");
   lcd.setCursor(0, 0);
   if (gps.get_fix()) {
     lcd.print(gps.get_lat());
-    lcd.print("v=");
-    lcd.print(gps.get_speed());		// speed (knots)
     digitalWrite(fixLED, HIGH);
+    lcd.print(" a");
+    lcd.print(gps.get_altitude());
+
   } else {
     lcd.print("wait for fix ");
     lcd.print(millis()/1000);
@@ -153,16 +154,16 @@ Serial.println("");
 
   lcd.setCursor(0, 1);
   lcd.print(gps.get_lon());
-  lcd.print(" alt=");
-  lcd.print(gps.get_altitude());
-  
+  lcd.print("v=");
+  lcd.print(gps.get_speed());		// speed (knots)
+
   
   
 
 }
 
 
-void loop2()
+void loop()
 {
   char c;
   bool valid_gps_data;
@@ -171,7 +172,7 @@ void loop2()
     //aprs_send(gps);
     printGPS();
     next_tx_millis = millis() + 1000;
-    toggle(13);
+    toggle(ledPin);
   }
   
   //if (Serial.available()) {
@@ -210,7 +211,7 @@ void loop2()
 }
 
 
-void loop() {
+void loop2() {
   char someChar;
   // listen for new serial coming in:
   if (Serial.available() > 0) {
