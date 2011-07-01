@@ -3,6 +3,7 @@ Research
 -Current measurement
 -Remote/Self restart
 
+test bryan checkin from laptop
 
 Inititialize
 -Control broadcasts
