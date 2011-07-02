@@ -19,9 +19,9 @@
 
 #define COLLECT 0x20 // collect mode, i.e. pass incoming without sending acks
 
-#define MYSELF 0x07
+#define MYSELF 0x15
 
-int8_t ledPins[] = { 4, 5, 6, 14 };
+int8_t ledPins[] = { 5, 6, 7, 8, 19 };
 boolean blinkmsg = false;
 int8_t actionPin = 0;
 boolean goodPin = false;
@@ -670,7 +670,7 @@ static void handleInput (char c) {
 }
 
 void setup() {
-    Serial.begin(57600);
+    Serial.begin(115200);
     Serial.print("\n[RF12demo.7]");
 
     if (rf12_config()) {
@@ -720,12 +720,12 @@ void loop() {
         }
         Serial.print(" ");
         Serial.print((int) rf12_hdr);
-        for (byte i = 0; i < n; ++i) {
-            Serial.print("   ");
-            Serial.print((int) rf12_data[i]);
-            Serial.print("=");
-            Serial.println(rf12_data[i]);
-        }
+        //for (byte i = 0; i < n; ++i) {
+        //    Serial.print("   ");
+        //    Serial.print((int) rf12_data[i]);
+        //    Serial.print("=");
+        //    Serial.println(rf12_data[i]);
+        //}
 
         if ( rf12_data[0] == 'B'
           && rf12_data[1] == 'L'
@@ -746,9 +746,9 @@ void loop() {
              
              // check if they are asking for a valid pin
              actionPin = rf12_data[6];
-             Serial.print("      checking action pin \"");
-             Serial.print(actionPin, DEC);
-             Serial.println("\"...");
+             //Serial.print("      checking action pin \"");
+             //Serial.print(actionPin, DEC);
+             //Serial.println("\"...");
 
              goodPin = false;
              for (int t = 0; t < sizeof(ledPins); t++) {
