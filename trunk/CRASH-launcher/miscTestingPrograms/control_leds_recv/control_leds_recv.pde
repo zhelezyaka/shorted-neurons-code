@@ -13,7 +13,6 @@ MilliTimer sendTimer;
 char start_msg[] = "BLINK";
 byte needToSend, remote_node, remote_pin, set_state;
 int last_state = HIGH;
-int low_count = 10;
 
 static void sendLed (byte on) {
     leds.mode(OUTPUT);
@@ -29,23 +28,21 @@ void setup () {
     Serial.begin(57600);
     Serial.println(57600);
     Serial.println("Send and Receive");
-    rf12_initialize(2, RF12_433MHZ, 212);
+    rf12_initialize(1, RF12_433MHZ, 212);
     
     pinMode(4,INPUT);
     digitalWrite(4, HIGH);
-    pinMode(7,INPUT);
-    digitalWrite(7, HIGH);
-    pinMode(8,INPUT);
-    digitalWrite(8, HIGH);
+    pinMode(7,OUTPUT);
+    pinMode(8,OUTPUT);
 
-    pinMode(5,OUTPUT);
-    pinMode(6,OUTPUT);
+    //pinMode(5,OUTPUT);
+    //pinMode(6,OUTPUT);
 }
 
 void loop () {
   char *remote_pin_hex;
   
-    if (Serial.available() >= 3) {
+/*    if (Serial.available() >= 3) {
         //Serial.println("Got serial input");
         rf12_config();
         remote_node = Serial.read();
@@ -55,8 +52,7 @@ void loop () {
         remote_pin = remote_pin - '0';
         needToSend = 1;
     } else if (digitalRead(4) == LOW) {
-        remote_node = 0x1;
-        low_count = 10;
+        remote_node = 0x21;
 
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
@@ -73,8 +69,7 @@ void loop () {
           needToSend = 1;
         }
     } else if (last_state == LOW) {
-        delay(10);
-        remote_node = 0x1;
+        remote_node = 0x21;
 
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
@@ -82,14 +77,9 @@ void loop () {
           remote_pin = 0x8;
 
         set_state = 'l';
-        if (--low_count > 0)
-          needToSend = 1;
-        else {
-          last_state = HIGH;
-          needToSend = 0;
-          low_count = 10;
-        }
-    }
+        last_state = HIGH;
+        needToSend = 1;
+    } */
 
     if (rf12_recvDone() && rf12_crc == 0) {
         //receiveLed(1);
