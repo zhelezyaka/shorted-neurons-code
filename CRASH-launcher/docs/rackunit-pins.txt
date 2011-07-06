@@ -1,0 +1,34 @@
+atmega328P-PU 28 pin DIP
+
+AVR
+phys	Arduino		2-chan		4-Chan		8-chan
+pin	pin	Desc	test rackunit	rackunit	rackunit
+----    ------  ------  --------------  --------------  -------------
+1		*RST
+2	D0/RX	*RX
+3	D1/TX	*TX
+4	D2		RF-INT		RF-INT		RF-INT
+5	D3		PWM buzzer	PWM buzzer	PWM buzzer
+6	D4		tri-state linkLight?
+7		*Vcc
+8		*GND
+9		*xtal1
+10		*xtal2
+11	D5		LedC1-contin
+12	D6		LedC2-contin
+13	D7		fireCoilC1
+14	D8		fireCoilC2
+15	D9		swMasterSafety	swMasterSafety	swMasterSafety
+16	D10	SS	RF-SEL		RF-SEL		RF-SEL
+17	D11	MOSI	RF-DI		RF-DI		RF-DI
+18	D12	MISO	RF-DO		RF-DO		RF-DO
+19	D13	SCK	RF-CLK		RF-CLK		RF-CLK
+20		*AVcc
+21		*AREF
+22		*GND
+23	A0/D14		sense-C1
+24	A1/D15		sense-C2
+25	A2/D16		sense-BATT	sense-BATT	sense-BATT
+26	A3/D17		sense-AMPS	sense-AMPS	sense-AMPS
+27	A4/D18	SDA
+28	A5/D19	SCL
