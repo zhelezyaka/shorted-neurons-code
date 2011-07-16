@@ -7,13 +7,15 @@
 
 #include <RF12.h>
 #include <Ports.h>
-
+#define safetySw 9
 Port leds (1);
 MilliTimer sendTimer;
 char start_msg[] = "BLINK";
-byte needToSend, remote_node, remote_pin, set_state;
+byte needToSend, remote_pin, set_state;
 int last_state = HIGH;
 int low_count = 10;
+
+byte remote_node = 0x15;
 
 static void sendLed (byte on) {
     leds.mode(OUTPUT);
@@ -37,14 +39,24 @@ void setup () {
     digitalWrite(7, HIGH);
     pinMode(8,INPUT);
     digitalWrite(8, HIGH);
-
+    pinMode(9,INPUT);
+    digitalWrite(9, HIGH);
+        pinMode(3,OUTPUT);
     pinMode(5,OUTPUT);
     pinMode(6,OUTPUT);
 }
 
 void loop () {
   char *remote_pin_hex;
-  
+  if (!digitalRead(safetySw)) {
+    digitalWrite(5,HIGH);
+    digitalWrite(6,LOW);
+    //analogWrite(3,128);
+  } else {
+    digitalWrite(5,LOW);
+    digitalWrite(6,HIGH);
+    //analogWrite(3,0);
+  }
     if (Serial.available() >= 3) {
         //Serial.println("Got serial input");
         rf12_config();
@@ -54,8 +66,8 @@ void loop () {
         remote_node = remote_node - '0';
         remote_pin = remote_pin - '0';
         needToSend = 1;
-    } else if (digitalRead(4) == LOW) {
-        remote_node = 0x1;
+    } else if (digitalRead(4) == LOW  && !digitalRead(safetySw)) {
+        
         low_count = 10;
 
         if (digitalRead(7) == LOW)
@@ -74,7 +86,7 @@ void loop () {
         }
     } else if (last_state == LOW) {
         delay(10);
-        remote_node = 0x1;
+        
 
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
