@@ -15,13 +15,13 @@
 #define DATAFLASH   0   // check for presence of DataFlash memory on JeeLink
 #define FLASH_MBIT  16  // support for various dataflash sizes: 4/8/16 Mbit
 
-#define LED_PIN     9   // activity LED
+#define LED_PIN     5   // activity LED
 
 #define COLLECT 0x20 // collect mode, i.e. pass incoming without sending acks
 
-#define MYSELF 0x07
+#define MYSELF 0x15
 
-int8_t ledPins[] = { 4, 5, 6, 14 };
+int8_t ledPins[] = { 4,5,6, 7, 8 };
 boolean blinkmsg = false;
 int8_t actionPin = 0;
 boolean goodPin = false;
@@ -701,6 +701,27 @@ void loop() {
     if (Serial.available())
         handleInput(Serial.read());
 
+    Serial.print("   ---> A1=");
+    int cont1 = analogRead(A1);
+    Serial.println(cont1);
+    if (cont1 <10) {
+      //continutity good
+      digitalWrite(5,HIGH);
+    } else {
+      //continuity bad
+      digitalWrite(5,LOW);
+    }
+
+    if (cont1 >0 && cont1 <20) {
+      //continutity marginal
+      digitalWrite(4,HIGH);
+    } else {
+      //continuity bad
+      digitalWrite(4,LOW);
+    }
+
+
+
     if (rf12_recvDone()) {
         byte n = rf12_len;
         if (rf12_crc == 0) {
@@ -723,8 +744,8 @@ void loop() {
         for (byte i = 0; i < n; ++i) {
             Serial.print("   ");
             Serial.print((int) rf12_data[i]);
-            Serial.print("=");
-            Serial.println(rf12_data[i]);
+        //    Serial.print("=");
+        //    Serial.println(rf12_data[i]);
         }
 
         if ( rf12_data[0] == 'B'
