@@ -24,14 +24,14 @@ pin	pin	Desc	testrig		cntrl		cntrl
 18	D12	MISO	RF-DO		RF-DO		RF-DO
 19	D13	SCK	RF-CLK		RF-CLK		RF-CLK
 20		*AVcc
-21		*AREF   3V precision reference here me thinks, or maybe 2.5
+21		*AREF
 22		*GND
-23	A0/D14		rtcChipSel(opt)	rtcChipSel(opt)	rtcChipSelect(opt)
-24	A1/D15		link/actionLed	link/actionLed	link/actionLed
-25	A2/D16		sense-BATT	sense-BATT	sense-BATT
-26	A3/D17		sense-AMPS	sense-AMPS	sense-AMPS
-27	A4/D18	SDA			LedShiftRegSel
-28	A5/D19	SCL			
+23	A0/D14		link/Act	link/Act	link/Act
+24	A1/D15		sense-BATT	sense-BATT	sense-BATT
+25	A2/D16				continuity-C1
+26	A3/D17				continuity-C2
+27	A4/D18	SDA			continuity-C3
+28	A5/D19	SCL			continuity-C4
 
 
 
