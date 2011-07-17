@@ -9,29 +9,29 @@ pin	pin	Desc	testrig		rackunit	rackunit
 3	D1/TX	*TX     		
 4	D2		RF-INT		RF-INT		RF-INT
 5	D3		PWM buzzer	PWM buzzer	PWM buzzer
-6	D4		swFIRE		swFIRE		swFIRE
+6	D4		link/actionLed	link/actionLed  link/actionLed
 7		*Vcc
 8		*GND
 9		*xtal1  8MHz
 10		*xtal2
 11	D5		LedC1-contin    fireCoil1       
 12	D6		LedC2-contin    fireCoil2       displayDriverChipSelect(opt)
-13	D7		fireCoil1	fireCoil3       adcChipSelect or analogMuxSelect
-14	D8		fireCoil2	fireCoil4	gpioOutChipSelect (indicators mostly)
-15	D9		swMasterSafety	swMasterSafety	swMasterSafety
+13	D7		fireCoil1	fireCoil3       adcChipSel or analogMuxSelect
+14	D8		fireCoil2	fireCoil4	gpioOutChipSelect (indicators)
+15	D9		swMasterSafety	safetyCoil	safetyCoil
 16	D10	SS	RF-SEL		RF-SEL		RF-SEL
 17	D11	MOSI	RF-DI		RF-DI		RF-DI
 18	D12	MISO	RF-DO		RF-DO		RF-DO
 19	D13	SCK	RF-CLK		RF-CLK		RF-CLK
 20		*AVcc
-21		*AREF   3V precision reference here me thinks, or maybe 2.5
+21		*AREF
 22		*GND
-23	A0/D14		rtcChipSel(opt)	rtcChipSel(opt)	rtcChipSel(opt)
-24	A1/D15		link/actionLed	link/actionLed  link/actionLed
-25	A2/D16		sense-BATT	sense-BATT	sense-BATT
-26	A3/D17		sense-AMPS	sense-AMPS	sense-AMPS
-27	A4/D18	SDA			LedSshiftRegSel adcIn if using analogMux
-28	A5/D19	SCL			
+23	A0/D14		link/actionLed  sense-AMPS (opt)
+24	A1/D15		sense-BATT	sense-BATT (opt)	sense-BATT
+25	A2/D16		sense-C1	sense-C1
+26	A3/D17		sense-C2	sense-C2
+27	A4/D18	SDA			sense-C3        adcIn if using analogMux
+28	A5/D19	SCL	sense-AMPS      sense-C4
 
 
 
