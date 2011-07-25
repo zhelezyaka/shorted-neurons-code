@@ -235,5 +235,5 @@ array package,
 includes base current
 limiting and protection 
 diodes
-N 47200 49300 47200 50600 4
 N 47200 48000 47200 46700 4
+N 47200 49400 47200 50600 4
