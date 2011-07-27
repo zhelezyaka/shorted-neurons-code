@@ -1,0 +1,173 @@
+v 20091004 2
+C 0 0 0 0 0 title-B.sym
+T 3600 8850 8 10 0 0 0 0 1
+device=CONNECTOR_7
+T 3600 9050 8 10 0 0 0 0 1
+footprint=SIP7N
+T 4000 5500 8 10 0 1 180 6 1
+refdes=CONN?
+T 4400 5550 8 10 0 0 180 0 1
+device=CONNECTOR_7
+T 4400 5350 8 10 0 0 180 0 1
+footprint=SIP7N
+P 5100 6200 5700 6200 1 0 0
+{
+T 5100 6200 5 10 0 0 0 0 1
+pintype=unknown
+T 5755 6195 5 10 1 1 0 0 1
+pinlabel=SDO
+T 5605 6245 5 10 1 1 0 6 1
+pinnumber=1
+T 5100 6200 5 10 0 0 0 0 1
+pinseq=1
+}
+P 5100 5800 5700 5800 1 0 0
+{
+T 5100 5800 5 10 0 0 0 0 1
+pintype=unknown
+T 5755 5795 5 10 1 1 0 0 1
+pinlabel=nIRQ
+T 5605 5845 5 10 1 1 0 6 1
+pinnumber=2
+T 5100 5800 5 10 0 0 0 0 1
+pinseq=2
+}
+P 5100 5400 5700 5400 1 0 0
+{
+T 5100 5400 5 10 0 0 0 0 1
+pintype=unknown
+T 5755 5395 5 10 1 1 0 0 1
+pinlabel=FSK/DATA/nFFS
+T 5605 5445 5 10 1 1 0 6 1
+pinnumber=3
+T 5100 5400 5 10 0 0 0 0 1
+pinseq=3
+}
+P 5100 5000 5700 5000 1 0 0
+{
+T 5100 5000 5 10 0 0 0 0 1
+pintype=unknown
+T 5755 4995 5 10 1 1 0 0 1
+pinlabel=DCLK/CFIL/FFIT
+T 5605 5045 5 10 1 1 0 6 1
+pinnumber=4
+T 5100 5000 5 10 0 0 0 0 1
+pinseq=4
+}
+P 5100 4600 5700 4600 1 0 0
+{
+T 5100 4600 5 10 0 0 0 0 1
+pintype=clk
+T 5755 4595 5 10 1 1 0 0 1
+pinlabel=CLK
+T 5605 4645 5 10 1 1 0 6 1
+pinnumber=5
+T 5100 4600 5 10 0 0 0 0 1
+pinseq=5
+}
+P 5100 4200 5700 4200 1 0 0
+{
+T 5100 4200 5 10 0 0 0 0 1
+pintype=io
+T 5755 4195 5 10 1 1 0 0 1
+pinlabel=nRES
+T 5605 4245 5 10 1 1 0 6 1
+pinnumber=6
+T 5100 4200 5 10 0 0 0 0 1
+pinseq=6
+}
+P 5100 3800 5700 3800 1 0 0
+{
+T 5100 3800 5 10 0 0 0 0 1
+pintype=pwr
+T 5755 3795 5 10 1 1 0 0 1
+pinlabel=GND
+T 5605 3845 5 10 1 1 0 6 1
+pinnumber=7
+T 5100 3800 5 10 0 0 0 0 1
+pinseq=7
+}
+P 8800 3800 8200 3800 1 0 0
+{
+T 8800 3800 5 10 0 0 180 0 1
+pintype=pas
+T 8145 3795 5 10 1 1 0 6 1
+pinlabel=ANTENNA
+T 8295 3845 5 10 1 1 0 0 1
+pinnumber=8
+T 8800 3800 5 10 0 0 180 0 1
+pinseq=14
+}
+P 8800 4200 8200 4200 1 0 0
+{
+T 8800 4200 5 10 0 0 180 0 1
+pintype=pwr
+T 8145 4195 5 10 1 1 0 6 1
+pinlabel=VDD
+T 8295 4245 5 10 1 1 0 0 1
+pinnumber=9
+T 8800 4200 5 10 0 0 180 0 1
+pinseq=13
+}
+P 8800 4600 8200 4600 1 0 0
+{
+T 8800 4600 5 10 0 0 180 0 1
+pintype=pwr
+T 8145 4595 5 10 1 1 0 6 1
+pinlabel=GND
+T 8295 4645 5 10 1 1 0 0 1
+pinnumber=10
+T 8800 4600 5 10 0 0 180 0 1
+pinseq=12
+}
+P 8800 5000 8200 5000 1 0 0
+{
+T 8800 5000 5 10 0 0 180 0 1
+pintype=io
+T 8145 4995 5 10 1 1 0 6 1
+pinlabel=nINT/VDI
+T 8295 5045 5 10 1 1 0 0 1
+pinnumber=11
+T 8800 5000 5 10 0 0 180 0 1
+pinseq=11
+}
+P 8800 5400 8200 5400 1 0 0
+{
+T 8800 5400 5 10 0 0 180 0 1
+pintype=io
+T 8145 5395 5 10 1 1 0 6 1
+pinlabel=SDI
+T 8295 5445 5 10 1 1 0 0 1
+pinnumber=12
+T 8800 5400 5 10 0 0 180 0 1
+pinseq=10
+}
+P 8800 5800 8200 5800 1 0 0
+{
+T 8800 5800 5 10 0 0 180 0 1
+pintype=clk
+T 8145 5795 5 10 1 1 0 6 1
+pinlabel=SCK
+T 8295 5845 5 10 1 1 0 0 1
+pinnumber=13
+T 8800 5800 5 10 0 0 180 0 1
+pinseq=9
+}
+P 8800 6200 8200 6200 1 0 0
+{
+T 8800 6200 5 10 0 0 180 0 1
+pintype=io
+T 8145 6195 5 10 1 1 0 6 1
+pinlabel=nSEL
+T 8295 6245 5 10 1 1 0 0 1
+pinnumber=14
+T 8800 6200 5 10 0 0 180 0 1
+pinseq=8
+}
+B 5300 3200 3300 3700 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+{
+T 5400 6700 5 10 1 1 0 0 1
+description=HopeRF RFM12B module
+T 5900 6500 5 10 1 1 0 0 1
+device=FSK RF transceiver
+}
