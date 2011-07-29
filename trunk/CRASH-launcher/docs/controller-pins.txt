@@ -8,7 +8,7 @@ pin	pin	Desc	testrig		cntrl		cntrl
 2	D0/RX	*RX                     
 3	D1/TX	*TX                     
 4	D2		RF-INT		RF-INT		RF-INT
-5	D3		PWM buzzer	PWM buzzer	PWM buzzer
+5	D3		swMasterSafety	swMasterSafety	swMasterSafety
 6	D4		swFIRE		swFIRE		swFIRE
 7		*Vcc
 8		*GND
@@ -18,7 +18,7 @@ pin	pin	Desc	testrig		cntrl		cntrl
 12	D6		LedC2-contin    swSelect2       displayDriverChipSelect(opt)
 13	D7		swSelect1	swSelect3       gpioInChipSelect  (select switches and rack/bank selector)
 14	D8		swSelect2	swSelect4	gpioOutChipSelect (indicators mostly)
-15	D9		swMasterSafety	swMasterSafety	swMasterSafety
+15	D9		PWM buzzer	PWM buzzer	PWM buzzer
 16	D10	SS	RF-SEL		RF-SEL		RF-SEL
 17	D11	MOSI	RF-DI		RF-DI		RF-DI
 18	D12	MISO	RF-DO		RF-DO		RF-DO
@@ -26,8 +26,8 @@ pin	pin	Desc	testrig		cntrl		cntrl
 20		*AVcc
 21		*AREF
 22		*GND
-23	A0/D14		link/Act	link/Act	link/Act
-24	A1/D15		sense-BATT	sense-BATT	sense-BATT
+23	A0/D14		sense-BATT	sense-BATT	sense-BATT
+24	A1/D15		link/Act	link/Act	link/Act
 25	A2/D16				continuity-C1
 26	A3/D17				continuity-C2
 27	A4/D18	SDA			continuity-C3
