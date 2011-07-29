@@ -8,7 +8,7 @@ pin	pin	Desc	testrig		rackunit	rackunit
 2	D0/RX	*RX                     
 3	D1/TX	*TX     		
 4	D2		RF-INT		RF-INT		RF-INT
-5	D3		PWM buzzer	PWM buzzer	PWM buzzer
+5	D3		swMasterSafety	safetyCoil	safetyCoil
 6	D4		link/actionLed	link/actionLed  link/actionLed
 7		*Vcc
 8		*GND
@@ -18,7 +18,7 @@ pin	pin	Desc	testrig		rackunit	rackunit
 12	D6		LedC2-contin    fireCoil2       displayDriverChipSelect(opt)
 13	D7		fireCoil1	fireCoil3       adcChipSel or analogMuxSelect
 14	D8		fireCoil2	fireCoil4	gpioOutChipSelect (indicators)
-15	D9		swMasterSafety	safetyCoil	safetyCoil
+15	D9		PWM buzzer	PWM buzzer	PWM buzzer
 16	D10	SS	RF-SEL		RF-SEL		RF-SEL
 17	D11	MOSI	RF-DI		RF-DI		RF-DI
 18	D12	MISO	RF-DO		RF-DO		RF-DO
