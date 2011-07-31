@@ -7,7 +7,8 @@
 
 #include <RF12.h>
 #include <Ports.h>
-#define safetySw 9
+#define safetySw 3
+#define buzzerPin 9
 Port leds (1);
 MilliTimer sendTimer;
 char start_msg[] = "BLINK";
@@ -39,9 +40,9 @@ void setup () {
     digitalWrite(7, HIGH);
     pinMode(8,INPUT);
     digitalWrite(8, HIGH);
-    pinMode(9,INPUT);
-    digitalWrite(9, HIGH);
-        pinMode(3,OUTPUT);
+    pinMode(safetySw,INPUT);
+    digitalWrite(safetySw, HIGH);
+        pinMode(buzzerPin,OUTPUT);
     pinMode(5,OUTPUT);
     pinMode(6,OUTPUT);
 }
@@ -51,11 +52,11 @@ void loop () {
   if (!digitalRead(safetySw)) {
     digitalWrite(5,HIGH);
     digitalWrite(6,LOW);
-    //analogWrite(3,128);
+    analogWrite(buzzerPin,128);
   } else {
     digitalWrite(5,LOW);
     digitalWrite(6,HIGH);
-    //analogWrite(3,0);
+    analogWrite(buzzerPin,0);
   }
     if (Serial.available() >= 3) {
         //Serial.println("Got serial input");
@@ -69,7 +70,7 @@ void loop () {
     } else if (digitalRead(4) == LOW  && !digitalRead(safetySw)) {
         
         low_count = 10;
-
+        analogWrite(buzzerPin,240);
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
         else if (digitalRead(8) == LOW)
