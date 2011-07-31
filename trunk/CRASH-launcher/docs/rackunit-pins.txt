@@ -26,8 +26,8 @@ pin	pin	Desc	testrig		rackunit	rackunit
 20		*AVcc
 21		*AREF
 22		*GND
-23	A0/D14		link/actionLed  sense-AMPS (opt)
-24	A1/D15		sense-BATT	sense-BATT (opt)	sense-BATT
+23	A0/D14		sense-BATT	sense-BATT (opt)	sense-BATT
+24	A1/D15		link/actionLed  sense-AMPS (opt)
 25	A2/D16		sense-C1	sense-C1
 26	A3/D17		sense-C2	sense-C2
 27	A4/D18	SDA			sense-C3        adcIn if using analogMux
