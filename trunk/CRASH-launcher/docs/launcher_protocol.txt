@@ -15,29 +15,34 @@ Then fire
 
 To pad:
 
-Rack ID - 1 Byte
+Rack number - 1 Byte
+Rack UUID - 1 Byte
 Command - 1 Byte
+-Initialize
 -Status
 -Arm
 -Fire
 -Safe
 Command params 
+-Initialize - 2 bytes ACK
 -Status - 2 Bytes @ 0
  -No params
--Arm - 1 Byte selected + 1 Byte @ 0
+-Arm - 1 Byte selected + 1 Byte always 0x00
  -Channels selected
 -Fire - 1 Byte selected + 1 Byte trigger
  -Channels selected
  -Channels to trigger
--Safe - 2 Bytes @ 0
+-Safe - 2 Bytes always 0xFF
  -No params
-Total:4 bytes
+Padding - 3 bytes
+Total:8 bytes
 
 
 
 From rack:
 
 Rack ID - 1 Byte
+Rack UUID - 1 Byte
 Command last seen - 1 Byte
 Channel state
 -Continuity - 1 Byte
@@ -46,7 +51,6 @@ Channel state
 Stats
 -Voltage - 1 Byte
 -Current - 1 Byte
-Padding - 1 byte
 Total: 8 bytes
 
 
