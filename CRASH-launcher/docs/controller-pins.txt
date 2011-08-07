@@ -19,6 +19,7 @@ pin	pin	Desc	testrig		cntrl		cntrl
 13	D7		swSelect1	swSelect3       gpioInChipSelect  (select switches and rack/bank selector)
 14	D8		swSelect2	swSelect4	gpioOutChipSelect (indicators mostly)
 15	D9		PWM buzzer	PWM buzzer	PWM buzzer
+					/initButton	/initButton
 16	D10	SS	RF-SEL		RF-SEL		RF-SEL
 17	D11	MOSI	RF-DI		RF-DI		RF-DI
 18	D12	MISO	RF-DO		RF-DO		RF-DO
