@@ -8,7 +8,7 @@ statefulness:
 		- encryption key in EEPROM
 		- controller channel ID (above 16)
 		- optional non-default radio netgroup number
-	- rackunits are always RID 1 thru 20 
+	- rackunits are always RID 1 thru 20
 	- controllers are always 21 or higher, defaults to 21
 	- rack units have a UID which can be obtained via:
 		- asking controller for one (dynamic)
@@ -25,7 +25,53 @@ statefulness:
 		- reply back to controller with my specific UUID, transmitting on the channel number (same as RID) specified by controller message
 		- controller will ACK that my particular UUID is really allocated that RID
 		- rackunit is now steady state loop
- 
+
+	rack main loop
+	-update display
+	-if data received
+	 -if statusCheck
+	  -check voltage, current
+	  -respond
+	  -set okToArm = 1
+	 -if Arm command && okToArm == 1
+	  -update display
+	  -close master
+	  -check continuity, voltage, current
+	  -respond w/continuity, voltage, current, selected
+	  -loop waiting for message
+	   -if no message in 250ms
+	    -safe
+	    -infinite loop waiting for 3xSAFE commands
+	   -if message
+	    -if Arm command
+	     -check continuity on all channels
+	     -check voltage + current
+	     -respond w/continuity, voltage, current, selected
+	    -if Fire command
+	     -if channels same as last arm message
+	      -set AVR port state to fire selected channels
+	      -loop waiting for message
+	       -update display
+	       -check continuity, voltage, current
+	       -respond w/continuity, voltage, current, selected, firing
+	       -if command != Fire
+	        -safe
+	        -return()
+	       -if no Fire message received for 100ms
+	        -safe
+	        -infinite loop waiting for 3xSAFE commands
+	     -else
+	      -safe
+	      -infinite loop waiting for 3xSAFE commands
+	    -if other command
+	     -return()
+	 -if console rack solicitation
+	  -respond w/config
+	 -if init pressed
+	  -wait for init broadcast
+	   -re-init
+
+
 
 - when controller powers up
 	0. init / safe
@@ -41,13 +87,13 @@ controller main loop:
 - read rack selector
 - if no racks initialized or init button pressed, go into init mode according to selected rack number
 - controller: periodic broadcasts of which UUID has which RID.
-	- if rackunit receives a control broadcast where UUID+RID pair does not match what he knows himself to be, he will turn link light off and self reset 
-	- if a club owns more than one controller (i.e. a backup), NEVER power up more than one controller in the same netgroup at the same time.  behavior if this were done is undefined  
+	- if rackunit receives a control broadcast where UUID+RID pair does not match what he knows himself to be, he will turn link light off and self reset
+	- if a club owns more than one controller (i.e. a backup), NEVER power up more than one controller in the same netgroup at the same time.  behavior if this were done is undefined
 - iterate through table of known rackunits and solicit status
 - check safety key
 while safety status = armed
 	(once after change into armed state)
-	if firebutton = firing, 
+	if firebutton = firing,
 		- infinite loop waiting for fire button to be released
 	else while safetystatus = armed
 		- readSelectSwitches
@@ -56,7 +102,7 @@ while safety status = armed
 			(message validation always)
 		- if response
 			validate
-			if fault... 
+			if fault...
 				?exceptions?
 		else (no response)
 			failuretorespond++
@@ -64,7 +110,7 @@ while safety status = armed
 				error lights or sounds
 				inifinite loop waiting for safety status = safe
 		- check firebutton
-			call fire()	
+			call fire()
 		- updateDisplay/audio
 		} end of while
 
@@ -76,14 +122,14 @@ fire(RID,selectionMatrix) {
 		- wait firingListenTimeout for firing status back from rackunit
 		- if response
 			validate
-			if fault... 
+			if fault...
 				?exceptions?
 		else (no response)
 			failuretorespondwhilefiring++
 			if failuretorespondwhilefiring > threshold
 				error lights or sounds
 				inifinite loop waiting for safety status = safe
-		
+
 		- updateDisplay/audio (i.e. audio might make diff sound if continuity goes away
 	}
 	// either firebutton released or safetykey = safe
@@ -91,8 +137,8 @@ fire(RID,selectionMatrix) {
 
 
 
-	
-		
+
+
 
 
 - init loop
