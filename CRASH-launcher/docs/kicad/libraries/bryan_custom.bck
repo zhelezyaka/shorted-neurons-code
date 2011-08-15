@@ -1,16 +1,6 @@
-EESchema-DOCLIB  Version 2.0  Date: Sun 14 Aug 2011 04:47:15 PM MDT
-#
-$CMP ?
-D R
-K resistor
-$ENDCMP
+EESchema-DOCLIB  Version 2.0  Date: Sun 14 Aug 2011 11:34:53 PM MDT
 #
 $CMP R
-D R
-K resistor
-$ENDCMP
-#
-$CMP R_ZIGZAG
 D R
 K resistor
 $ENDCMP
