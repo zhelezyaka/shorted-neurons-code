@@ -1,6 +1,6 @@
-update=Sun 14 Aug 2011 05:09:50 PM MDT
+update=Wed 24 Aug 2011 11:29:22 PM MDT
 version=1
-last_client=eeschema
+last_client=kicad
 [cvpcb]
 version=1
 NetITyp=0
@@ -77,8 +77,6 @@ LibName7=display
 LibName8=valves
 LibName9=led
 LibName10=dip_sockets
-[general]
-version=1
 [eeschema]
 version=1
 LibDir=libraries;modules
@@ -147,3 +145,5 @@ LibName29=atmel
 LibName30=contrib
 LibName31=valves
 LibName32=rfm12
+[general]
+version=1
