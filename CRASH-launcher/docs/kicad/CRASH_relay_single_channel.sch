@@ -45,28 +45,4 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Sheet
-S 1050 6400 1900 1000
-U 4E55BFAD
-F0 "Lead acid charging" 60
-F1 "CRASH_lead_acid_charging.sch" 60
-$EndSheet
-$Sheet
-S 8650 4550 2050 1600
-U 4E55BF85
-F0 "Relay Single Channel" 60
-F1 "CRASH_relay_single_channel.sch" 60
-$EndSheet
-$Sheet
-S 6100 1500 2850 1700
-U 4E55BF66
-F0 "RackUnit" 60
-F1 "CRASH_4-channel_rackUnit.sch" 60
-$EndSheet
-$Sheet
-S 1700 1450 2100 1400
-U 4E55BEBF
-F0 "Controller" 60
-F1 "CRASH_4-channel_controller.sch" 60
-$EndSheet
 $EndSCHEMATC

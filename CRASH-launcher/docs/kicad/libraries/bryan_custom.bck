@@ -1,8 +1,12 @@
-EESchema-DOCLIB  Version 2.0  Date: Sun 14 Aug 2011 11:34:53 PM MDT
+EESchema-DOCLIB  Version 2.0  Date: Wed 24 Aug 2011 10:59:10 PM MDT
 #
 $CMP R
 D R
 K resistor
+$ENDCMP
+#
+$CMP TSC888
+D current sense shunt amplifier
 $ENDCMP
 #
 #End Doc Library
