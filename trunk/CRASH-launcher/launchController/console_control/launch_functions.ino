@@ -29,14 +29,14 @@ byte read_rack_switch(void) {
 void read_select_sws(byte *state) {
   *state = 0;
 
-  for (i = 0; i < sizeof(chan_select) - 1; i++) {
+  for (i = 0; i < sizeof(chan_select); i++) {
     if (digitalRead(chan_select[i]) == LOW)
       bitWrite(*state, chan_select[i], 1);
   }
 }
 
 void set_select_leds(byte *state) {
-  for (i = 0; i < sizeof(chan_select) - 1; i++) {
+  for (i = 0; i < sizeof(chan_select); i++) {
     if (bitRead(*state, chan_select[i]))
       digitalWrite(cont_leds[i], HIGH);
     else
@@ -72,7 +72,7 @@ void launch(byte rack, byte *state) {
 
   byte payload[] = {rack, 0, cmd_fire, *state, state_mask, 0, 0, 0};
   
-  while (check_fire()) {
+  while (check_fire() && !is_safe()) {
     curr_millis = millis();
     if (curr_millis - last_tx > tx_interval) {
       if (rf12_recvDone() && rf12_crc == 0) { }

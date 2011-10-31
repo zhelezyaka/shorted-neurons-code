@@ -73,7 +73,7 @@ void setup () {
     rf12_initialize(1, RF12_FREQ, RF12_NGRP);
     
     //initialize channel select pins
-    for (i = 0; i < sizeof(coil_select) - 1; i++) {
+    for (i = 0; i < sizeof(coil_select); i++) {
       pinMode(coil_select[i], OUTPUT);
       digitalWrite(coil_select[i], LOW);
     }
