@@ -77,7 +77,7 @@ void setup () {
 //    }
 
     //initialize channel select pins
-    for (i = 0; i < sizeof(chan_select) - 1; i++) {
+    for (i = 0; i < sizeof(chan_select); i++) {
       pinMode(chan_select[i], INPUT);
       digitalWrite(chan_select[i], HIGH);
     }
@@ -93,7 +93,7 @@ void setup () {
     digitalWrite(beep_init_pin, HIGH);
 
     //init continuity indicator pins
-    for (i = 0; i < sizeof(cont_leds) - 1; i++) {
+    for (i = 0; i < sizeof(cont_leds); i++) {
       pinMode(cont_leds[i], OUTPUT);
       digitalWrite(cont_leds[i], LOW);
     }
@@ -120,6 +120,7 @@ void loop () {
   if (is_safe() && status != status_safe) {
     status = status_safe;
     set_select_leds(&zero);
+    digitalWrite(link_led, LOW);                                                                                                                                                                                                                                                                                                                                  
   //  safe all 3x
   }
   
@@ -142,6 +143,7 @@ void loop () {
           rackID = read_rack_switch();
           read_select_sws(&chan_state);
           set_select_leds(&chan_state);
+          digitalWrite(link_led, HIGH);
   //      transmit armed to rackID
   //      loop until status = status_both_armed || 50ms elapsed
   //        if response

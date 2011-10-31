@@ -23,7 +23,7 @@ boolean engage(byte select_coils, byte warp_coils) {
   if (warp_coils == select_coils) {
     if (status == status_both_armed) {
       status = status_firing;
-      for (i = 0; i < sizeof(coil_select) - 1; i++) {
+      for (i = 0; i < sizeof(coil_select); i++) {
         //this is only possible because the numeric value of
         //pin #s 4-7 happen to match their place in the PORTD bitmap
         bitWrite(coil_state, coil_select[i], bitRead(warp_coils, i));
