@@ -5,19 +5,19 @@ phys	Arduino		2-chan		4-Chan		N-chan
 pin	pin	Desc	testrig		rackunit	rackunit
 ----    ------  ------  --------------  --------------  -------------
 1		*RST
-2	D0/RX	*RX                     
-3	D1/TX	*TX     		
+2	D0/RX	*RX
+3	D1/TX	*TX
 4	D2		RF-INT		RF-INT		RF-INT
-5	D3		swMasterSafety	safetyCoil	safetyCoil
-6	D4		link/actionLed	link/actLed	link/actLed
+5	D3		swMasterSafety	link/actLed	safetyCoil
+6	D4		link/actionLed	fireCoil1	link/actLed
 7		*Vcc
 8		*GND
 9		*xtal1  8MHz
 10		*xtal2
-11	D5		LedC1-contin    fireCoil1       
-12	D6		LedC2-contin    fireCoil2       displayDriverChipSelect(opt)
-13	D7		fireCoil1	fireCoil3       adcChipSel or analogMuxSelect
-14	D8		fireCoil2	fireCoil4	gpioOutChipSelect (indicators)
+11	D5		LedC1-contin    fireCoil2
+12	D6		LedC2-contin    fireCoil3       displayDriverChipSelect(opt)
+13	D7		fireCoil1	fireCoil4       adcChipSel or analogMuxSelect
+14	D8		fireCoil2	safetyCoil	gpioOutChipSelect (indicators)
 15	D9		PWM buzzer	PWM buzzer	PWM buzzer
 					/initButton	/initButton
 16	D10	SS	RF-SEL		RF-SEL		RF-SEL
