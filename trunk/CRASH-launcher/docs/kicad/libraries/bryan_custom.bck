@@ -1,4 +1,9 @@
-EESchema-DOCLIB  Version 2.0  Date: Wed 24 Aug 2011 10:59:10 PM MDT
+EESchema-DOCLIB  Version 2.0  Date: Sun 29 Jan 2012 03:56:32 PM MST
+#
+$CMP MAX60XX
+D Precision Voltage Reference
+K VREF
+$ENDCMP
 #
 $CMP R
 D R
