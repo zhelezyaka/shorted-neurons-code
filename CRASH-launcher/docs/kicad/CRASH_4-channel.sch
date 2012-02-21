@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 10/2/2011 9:52:43 PM
+EESchema Schematic File Version 2  date Mon 20 Feb 2012 04:56:42 PM MST
 LIBS:bryan_custom
 LIBS:power
 LIBS:device
@@ -38,7 +38,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 5
 Title ""
-Date "3 oct 2011"
+Date "14 feb 2012"
 Rev ""
 Comp ""
 Comment1 ""
