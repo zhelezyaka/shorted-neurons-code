@@ -1,0 +1,680 @@
+EESchema Schematic File Version 2  date Mon 20 Feb 2012 05:21:35 PM MST
+LIBS:bryan_custom
+LIBS:rfm12
+LIBS:LED_RGB
+LIBS:ULN280xA
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:bryan_4chan-cache
+EELAYER 25  0
+EELAYER END
+$Descr A4 11700 8267
+encoding utf-8
+Sheet 4 5
+Title "noname.sch"
+Date "21 feb 2012"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L R R401
+U 1 1 4F2B75F6
+P 3200 650
+F 0 "R401" H 3240 720 50  0000 C CNN
+F 1 "R" H 3230 580 50  0000 C CNN
+	1    3200 650 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R403
+U 1 1 4F2B75F5
+P 3200 900
+F 0 "R403" H 3240 970 50  0000 C CNN
+F 1 "R" H 3230 830 50  0000 C CNN
+	1    3200 900 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R405
+U 1 1 4F2B75F4
+P 3200 1150
+F 0 "R405" H 3240 1220 50  0000 C CNN
+F 1 "R" H 3230 1080 50  0000 C CNN
+	1    3200 1150
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R407
+U 1 1 4F2B75F3
+P 3200 1400
+F 0 "R407" H 3240 1470 50  0000 C CNN
+F 1 "R" H 3230 1330 50  0000 C CNN
+	1    3200 1400
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R409
+U 1 1 4F2B75F2
+P 3200 1650
+F 0 "R409" H 3240 1720 50  0000 C CNN
+F 1 "R" H 3230 1580 50  0000 C CNN
+	1    3200 1650
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R411
+U 1 1 4F2B75F1
+P 3200 1900
+F 0 "R411" H 3240 1970 50  0000 C CNN
+F 1 "R" H 3230 1830 50  0000 C CNN
+	1    3200 1900
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R413
+U 1 1 4F2B75F0
+P 3200 2150
+F 0 "R413" H 3240 2220 50  0000 C CNN
+F 1 "R" H 3230 2080 50  0000 C CNN
+	1    3200 2150
+	-1   0    0    -1  
+$EndComp
+$Comp
+L R R415
+U 1 1 4F2B75EF
+P 3200 2400
+F 0 "R415" H 3240 2470 50  0000 C CNN
+F 1 "R" H 3230 2330 50  0000 C CNN
+	1    3200 2400
+	-1   0    0    -1  
+$EndComp
+$Comp
+L GND #U014
+U 1 1 4F2B75EE
+P 4000 3000
+F 0 "#U014" H 4050 3050 60  0001 C CNN
+F 1 "GND" H 4000 2765 60  0000 C CNN
+	1    4000 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 2150 3850 2150
+Wire Wire Line
+	3850 2150 3850 1900
+Wire Wire Line
+	3850 1900 4100 1900
+Wire Wire Line
+	3400 1650 3550 1650
+Wire Wire Line
+	3550 1650 3550 1600
+Wire Wire Line
+	3550 1600 4100 1600
+Wire Wire Line
+	3400 1150 3700 1150
+Wire Wire Line
+	3700 1150 3700 1300
+Wire Wire Line
+	3700 1300 4100 1300
+Wire Wire Line
+	3400 650  4000 650 
+Wire Wire Line
+	4000 650  4000 1000
+Wire Wire Line
+	4000 1000 4100 1000
+Wire Wire Line
+	4100 1150 3850 1150
+Wire Wire Line
+	3850 1150 3850 900 
+Wire Wire Line
+	3850 900  3400 900 
+Wire Wire Line
+	4100 1450 3550 1450
+Wire Wire Line
+	3550 1450 3550 1400
+Wire Wire Line
+	3550 1400 3400 1400
+Wire Wire Line
+	4100 1750 3700 1750
+Wire Wire Line
+	3700 1750 3700 1900
+Wire Wire Line
+	3700 1900 3400 1900
+Wire Wire Line
+	4100 2050 4000 2050
+Wire Wire Line
+	4000 2050 4000 2400
+Wire Wire Line
+	4000 2400 3400 2400
+$Comp
+L LED_RCGB LED402
+U 1 1 4F2B759E
+P 8350 900
+F 0 "LED402" H 8210 1160 60  0000 C CNN
+F 1 "LED_RCGB" H 8350 650 60  0000 C CNN
+	1    8350 900 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7750 900  8100 900 
+Wire Wire Line
+	7750 650  7900 650 
+Wire Wire Line
+	7900 650  7900 750 
+Wire Wire Line
+	7900 750  8100 750 
+Wire Wire Line
+	8100 1050 7900 1050
+Wire Wire Line
+	7900 1050 7900 1150
+Wire Wire Line
+	7900 1150 7750 1150
+Wire Wire Line
+	7750 1900 7900 1900
+Wire Wire Line
+	7900 1900 7900 1800
+Wire Wire Line
+	7900 1800 8100 1800
+Wire Wire Line
+	8100 1500 7900 1500
+Wire Wire Line
+	7900 1500 7900 1400
+Wire Wire Line
+	7900 1400 7750 1400
+Wire Wire Line
+	7750 1650 8100 1650
+$Comp
+L LED_RCGB LED404
+U 1 1 4F2B759D
+P 8350 1650
+F 0 "LED404" H 8210 1910 60  0000 C CNN
+F 1 "LED_RCGB" H 8350 1400 60  0000 C CNN
+	1    8350 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #U015
+U 1 1 4F25D66D
+P 8150 2750
+F 0 "#U015" H 8200 2800 60  0001 C CNN
+F 1 "GND" H 8150 2515 60  0000 C CNN
+	1    8150 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED_RCGB LED403
+U 1 1 4F2B7565
+P 2400 1650
+F 0 "LED403" H 2260 1910 60  0000 C CNN
+F 1 "LED_RCGB" H 2400 1400 60  0000 C CNN
+	1    2400 1650
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 1650 2650 1650
+Wire Wire Line
+	3000 1400 2850 1400
+Wire Wire Line
+	2850 1400 2850 1500
+Wire Wire Line
+	2850 1500 2650 1500
+Wire Wire Line
+	2650 1800 2850 1800
+Wire Wire Line
+	2850 1800 2850 1900
+Wire Wire Line
+	2850 1900 3000 1900
+Wire Wire Line
+	3000 1150 2850 1150
+Wire Wire Line
+	2850 1150 2850 1050
+Wire Wire Line
+	2850 1050 2650 1050
+Wire Wire Line
+	2650 750  2850 750 
+Wire Wire Line
+	2850 750  2850 650 
+Wire Wire Line
+	2850 650  3000 650 
+Wire Wire Line
+	7350 2150 6900 2150
+Wire Wire Line
+	6900 2150 6900 1900
+Wire Wire Line
+	6900 1900 6650 1900
+Wire Wire Line
+	7350 1650 7200 1650
+Wire Wire Line
+	7200 1650 7200 1600
+Wire Wire Line
+	7200 1600 6650 1600
+Wire Wire Line
+	7350 1150 7050 1150
+Wire Wire Line
+	7050 1150 7050 1300
+Wire Wire Line
+	7050 1300 6650 1300
+Wire Wire Line
+	7350 650  6750 650 
+Wire Wire Line
+	6750 650  6750 1000
+Wire Wire Line
+	6750 1000 6650 1000
+Connection ~ 5700 6800
+Wire Wire Line
+	5850 6800 5550 6800
+Wire Wire Line
+	5850 6800 5850 6600
+Wire Wire Line
+	5250 6850 5250 6600
+Wire Wire Line
+	4950 6850 4950 6600
+Wire Wire Line
+	4100 5550 3900 5550
+Wire Wire Line
+	3900 5550 3900 5450
+Wire Wire Line
+	3900 5450 3500 5450
+Wire Wire Line
+	4100 5250 3500 5250
+Wire Wire Line
+	4100 4950 3950 4950
+Wire Wire Line
+	3950 4950 3950 5050
+Wire Wire Line
+	3950 5050 3500 5050
+Wire Wire Line
+	3500 4850 3650 4850
+Wire Wire Line
+	3650 4850 3650 4650
+Wire Wire Line
+	3650 4650 4100 4650
+Wire Wire Line
+	3500 4950 3800 4950
+Wire Wire Line
+	3800 4950 3800 4800
+Wire Wire Line
+	3800 4800 4100 4800
+Wire Wire Line
+	3500 5150 4050 5150
+Wire Wire Line
+	4050 5150 4050 5100
+Wire Wire Line
+	4050 5100 4100 5100
+Wire Wire Line
+	3500 5350 4000 5350
+Wire Wire Line
+	4000 5350 4000 5400
+Wire Wire Line
+	4000 5400 4100 5400
+Wire Wire Line
+	3500 5550 3750 5550
+Wire Wire Line
+	3750 5550 3750 5700
+Wire Wire Line
+	3750 5700 4100 5700
+Wire Wire Line
+	5100 6850 5100 6600
+Wire Wire Line
+	4800 6850 4800 6600
+Wire Wire Line
+	4800 3200 4800 2950
+Wire Wire Line
+	5100 3200 5100 2950
+Wire Wire Line
+	4950 3200 4950 2950
+Wire Wire Line
+	5250 3200 5250 2950
+Wire Wire Line
+	5550 6800 5550 6600
+Wire Wire Line
+	5700 6600 5700 6800
+Wire Wire Line
+	5700 2950 5700 3150
+Wire Wire Line
+	5550 2950 5550 3150
+Wire Wire Line
+	5850 2950 5850 3150
+Wire Wire Line
+	5850 3150 5550 3150
+Connection ~ 5700 3150
+Wire Wire Line
+	6650 1150 6900 1150
+Wire Wire Line
+	6900 1150 6900 900 
+Wire Wire Line
+	6900 900  7350 900 
+Wire Wire Line
+	6650 1450 7200 1450
+Wire Wire Line
+	7200 1450 7200 1400
+Wire Wire Line
+	7200 1400 7350 1400
+Wire Wire Line
+	6650 1750 7050 1750
+Wire Wire Line
+	7050 1750 7050 1900
+Wire Wire Line
+	7050 1900 7350 1900
+Wire Wire Line
+	6650 2050 6750 2050
+Wire Wire Line
+	6750 2050 6750 2400
+Wire Wire Line
+	6750 2400 7350 2400
+Wire Wire Line
+	7350 6050 6750 6050
+Wire Wire Line
+	6750 6050 6750 5700
+Wire Wire Line
+	6750 5700 6650 5700
+Wire Wire Line
+	7350 5550 7050 5550
+Wire Wire Line
+	7050 5550 7050 5400
+Wire Wire Line
+	7050 5400 6650 5400
+Wire Wire Line
+	7350 5050 7200 5050
+Wire Wire Line
+	7200 5050 7200 5100
+Wire Wire Line
+	7200 5100 6650 5100
+Wire Wire Line
+	7350 4550 6900 4550
+Wire Wire Line
+	6900 4550 6900 4800
+Wire Wire Line
+	6900 4800 6650 4800
+Wire Wire Line
+	6650 4650 6750 4650
+Wire Wire Line
+	6750 4650 6750 4300
+Wire Wire Line
+	6750 4300 7350 4300
+Wire Wire Line
+	6650 4950 7050 4950
+Wire Wire Line
+	7050 4950 7050 4800
+Wire Wire Line
+	7050 4800 7350 4800
+Wire Wire Line
+	6650 5250 7200 5250
+Wire Wire Line
+	7200 5250 7200 5300
+Wire Wire Line
+	7200 5300 7350 5300
+Wire Wire Line
+	6650 5550 6900 5550
+Wire Wire Line
+	6900 5550 6900 5800
+Wire Wire Line
+	6900 5800 7350 5800
+Wire Wire Line
+	3000 900  2650 900 
+$Comp
+L LED_RCGB LED401
+U 1 1 4F2B7484
+P 2400 900
+F 0 "LED401" H 2260 1160 60  0000 C CNN
+F 1 "LED_RCGB" H 2400 650 60  0000 C CNN
+	1    2400 900 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L GND #U016
+U 1 1 4F25D672
+P 8150 6350
+F 0 "#U016" H 8200 6400 60  0001 C CNN
+F 1 "GND" H 8150 6115 60  0000 C CNN
+	1    8150 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R402
+U 1 1 4F25D65C
+P 7550 650
+F 0 "R402" H 7590 720 50  0000 C CNN
+F 1 "R" H 7580 580 50  0000 C CNN
+	1    7550 650 
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R404
+U 1 1 4F25D65B
+P 7550 900
+F 0 "R404" H 7590 970 50  0000 C CNN
+F 1 "R" H 7580 830 50  0000 C CNN
+	1    7550 900 
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R406
+U 1 1 4F25D65A
+P 7550 1150
+F 0 "R406" H 7590 1220 50  0000 C CNN
+F 1 "R" H 7580 1080 50  0000 C CNN
+	1    7550 1150
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R408
+U 1 1 4F25D659
+P 7550 1400
+F 0 "R408" H 7590 1470 50  0000 C CNN
+F 1 "R" H 7580 1330 50  0000 C CNN
+	1    7550 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R410
+U 1 1 4F25D658
+P 7550 1650
+F 0 "R410" H 7590 1720 50  0000 C CNN
+F 1 "R" H 7580 1580 50  0000 C CNN
+	1    7550 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R412
+U 1 1 4F25D657
+P 7550 1900
+F 0 "R412" H 7590 1970 50  0000 C CNN
+F 1 "R" H 7580 1830 50  0000 C CNN
+	1    7550 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R414
+U 1 1 4F25D656
+P 7550 2150
+F 0 "R414" H 7590 2220 50  0000 C CNN
+F 1 "R" H 7580 2080 50  0000 C CNN
+	1    7550 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R416
+U 1 1 4F25D655
+P 7550 2400
+F 0 "R416" H 7590 2470 50  0000 C CNN
+F 1 "R" H 7580 2330 50  0000 C CNN
+	1    7550 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R425
+U 1 1 4F25D61D
+P 7550 6050
+F 0 "R425" H 7590 6120 50  0000 C CNN
+F 1 "R" H 7580 5980 50  0000 C CNN
+	1    7550 6050
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R424
+U 1 1 4F25D61B
+P 7550 5800
+F 0 "R424" H 7590 5870 50  0000 C CNN
+F 1 "R" H 7580 5730 50  0000 C CNN
+	1    7550 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R423
+U 1 1 4F25D618
+P 7550 5550
+F 0 "R423" H 7590 5620 50  0000 C CNN
+F 1 "R" H 7580 5480 50  0000 C CNN
+	1    7550 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R422
+U 1 1 4F25D616
+P 7550 5300
+F 0 "R422" H 7590 5370 50  0000 C CNN
+F 1 "R" H 7580 5230 50  0000 C CNN
+	1    7550 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R421
+U 1 1 4F25D615
+P 7550 5050
+F 0 "R421" H 7590 5120 50  0000 C CNN
+F 1 "R" H 7580 4980 50  0000 C CNN
+	1    7550 5050
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R420
+U 1 1 4F25D614
+P 7550 4800
+F 0 "R420" H 7590 4870 50  0000 C CNN
+F 1 "R" H 7580 4730 50  0000 C CNN
+	1    7550 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R419
+U 1 1 4F25D612
+P 7550 4550
+F 0 "R419" H 7590 4620 50  0000 C CNN
+F 1 "R" H 7580 4480 50  0000 C CNN
+	1    7550 4550
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R418
+U 1 1 4F25D60D
+P 7550 4300
+F 0 "R418" H 7590 4370 50  0000 C CNN
+F 1 "R" H 7580 4230 50  0000 C CNN
+	1    7550 4300
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #U017
+U 1 1 4F25D49C
+P 5700 3550
+F 0 "#U017" H 5750 3600 60  0001 C CNN
+F 1 "GND" H 5700 3315 60  0000 C CNN
+	1    5700 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R417
+U 1 1 4F25D48F
+P 5700 3350
+F 0 "R417" H 5740 3420 50  0000 C CNN
+F 1 "10k" H 5730 3280 50  0000 C CNN
+	1    5700 3350
+	0    1    1    0   
+$EndComp
+$Comp
+L +3.3V #PWR018
+U 1 1 4F25D433
+P 5700 7200
+F 0 "#PWR018" H 5700 7160 30  0001 C CNN
+F 1 "+3.3V" H 5700 7310 30  0000 C CNN
+	1    5700 7200
+	-1   0    0    1   
+$EndComp
+$Comp
+L R R426
+U 1 1 4F25D349
+P 5700 7000
+F 0 "R426" H 5740 7070 50  0000 C CNN
+F 1 "10k" H 5730 6930 50  0000 C CNN
+	1    5700 7000
+	0    1    1    0   
+$EndComp
+$Comp
+L MCP23S17 U402
+U 1 1 4F25D2EE
+P 5350 5450
+F 0 "U402" H 5350 6350 60  0000 C CNN
+F 1 "MCP23S17" H 5350 5450 60  0000 C CNN
+F 2 "DIP-28" H 5500 5750 60  0000 C CNN
+	1    5350 5450
+	1    0    0    -1  
+$EndComp
+Text HLabel 4950 6850 3    60   Input ~ 12
+SCK
+Text HLabel 5100 6850 3    60   Input ~ 12
+MOSI
+Text HLabel 5250 6850 3    60   Output ~ 12
+MISO
+Text HLabel 4800 6850 3    60   Input ~ 12
+GPIO_CS
+Text HLabel 4800 3200 3    60   Input ~ 12
+GPIO_CS
+Text HLabel 5250 3200 3    60   Output ~ 12
+MISO
+Text HLabel 5100 3200 3    60   Input ~ 12
+MOSI
+Text HLabel 4950 3200 3    60   Input ~ 12
+SCK
+$Comp
+L MCP23S17 U401
+U 1 1 4F25D14A
+P 5350 1800
+F 0 "U401" H 5350 2700 60  0000 C CNN
+F 1 "MCP23S17" H 5350 1800 60  0000 C CNN
+F 2 "DIP-28" H 5500 2100 60  0000 C CNN
+	1    5350 1800
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
