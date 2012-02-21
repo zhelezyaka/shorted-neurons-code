@@ -1,0 +1,22 @@
+EESchema-DOCLIB  Version 2.0  Date: Mon 13 Feb 2012 10:17:57 PM MST
+#
+$CMP IGNITER
+D R
+K resistor
+$ENDCMP
+#
+$CMP MAX60XX
+D Precision Voltage Reference
+K VREF
+$ENDCMP
+#
+$CMP R
+D R
+K resistor
+$ENDCMP
+#
+$CMP TSC888
+D current sense shunt amplifier
+$ENDCMP
+#
+#End Doc Library
