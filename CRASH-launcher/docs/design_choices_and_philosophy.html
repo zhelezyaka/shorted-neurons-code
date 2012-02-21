@@ -71,3 +71,71 @@ Acknowledged disadvantages:
 - experienced users universally hate the Arduino IDE (workarounds available w/ effort)
 - "bloaty" code according to the purist crowd
 - more costly than some alternatives (sacrifice for ease of entry)
+
+
+
+
+______________________________________________________
+How the continuity circuit works and why it matters or something:
+
+- one end of ignitor is always grounded
+- other end of ignitor hooks to relay output and thru 10k to +12V.  this resistor is required to have nice ~1mA thru ignitor for continuity test.
+- THEN
+
+
+DIODE on low side wins... see below at "WINNER"
+- with diode D1 and 30Ω ignitor
+	- on scope, open circuit = 1.91
+	- with 30 ohm ignitor, 18mV
+	- when firing, 2.2V
+	- when firing and it opens, 2.3V
+
+- without diode 
+	- on scope, open circuit = 2V (diode has .1 drop at this current)
+	- with 30Ω ignitor, 29mV
+	- when firing 2.31V
+	- when firing and it opens, 2.38 
+
+
+DIODE on low side wins... see below at "WINNER"
+- with diode D1 and 1Ω ignitor
+	- on scope, open circuit = 1.91
+	- with 1 ohm ignitor, 18mV
+	- when firing, 1.32
+	- when firing and it opens, 2.27V
+
+- without diode 
+	- on scope, open circuit = 2V (diode has .1 drop at this current)
+	- with 1Ω ignitor, 18mV
+	- when firing 1.4V
+	- when firing and it opens, 2.38 
+
+
+
+DIODE on low side wins... see below at "WINNER"
+____________
+WINNER........
+- with diode on low side and 1Ω ignitor
+	- open circuit = 2.45V
+	- with 1 ohm ignitor, 21mV
+	- when firing, 1.84
+	- when firing and it opens, 2.82V
+
+- with diode on bottome side and 30ohm ignitor
+	- open circuit = 2.45V
+	- with 30Ω ignitor, 82mV
+	- when firing 2.75V
+	- when firing and it opens, 2.82V
+
+- with estes ignitor that seemed normal, seems to measur 0.5 ohms
+	- would not fire at 800mA with 11ohms resistors
+	- would not fire at 1A with 6ohms
+	- would not fire at 1.2A with 4ohms
+	- fired at 1.8A with 1ohm resistor, nichrome did not break, continues at 1.8A, scope said 2.2V while firing this way
+
+
+- another estes ignitor, seems like 0.5ohms
+	- tried straight away, no resitor:
+	- fired quickly, 2A, wire getting warm was the trouble
+
+
