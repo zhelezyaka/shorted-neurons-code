@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Mon 20 Feb 2012 04:56:42 PM MST
+EESchema Schematic File Version 2  date Fri 23 Mar 2012 11:21:48 PM MDT
 LIBS:bryan_custom
 LIBS:power
 LIBS:device
@@ -38,7 +38,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 3 5
 Title ""
-Date "14 feb 2012"
+Date "24 mar 2012"
 Rev ""
 Comp ""
 Comment1 ""
@@ -47,9 +47,9 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 Wire Wire Line
-	5950 1400 5950 1800
+	7400 4750 4700 4750
 Wire Wire Line
-	4800 4750 4700 4750
+	5950 1400 5950 1800
 Wire Wire Line
 	5600 4250 5600 4350
 Wire Wire Line
@@ -58,8 +58,6 @@ Wire Wire Line
 	7450 4150 7500 4150
 Wire Wire Line
 	7500 4150 7500 4050
-Wire Wire Line
-	7400 4750 6200 4750
 Wire Wire Line
 	7050 5950 7050 5650
 Wire Wire Line
@@ -116,6 +114,18 @@ Wire Wire Line
 	5300 4250 4700 4250
 Wire Wire Line
 	4700 4250 4700 4750
+Wire Wire Line
+	5200 4350 5200 4250
+Connection ~ 5200 4250
+$Comp
+L DIODE D?
+U 1 1 4F6D547B
+P 5400 4350
+F 0 "D?" H 5400 4450 40  0000 C CNN
+F 1 "DIODE" H 5400 4250 40  0000 C CNN
+	1    5400 4350
+	-1   0    0    -1  
+$EndComp
 $Comp
 L IGNITER R??
 U 1 1 4F39EEF3
@@ -125,15 +135,6 @@ F 1 "IGNITER" H 5980 1130 50  0000 C CNN
 F 2 "PAD" H 6000 1500 60  0000 C CNN
 	1    5950 1200
 	0    1    1    0   
-$EndComp
-$Comp
-L 4052 U?
-U 1 1 4F2C9D90
-P 5500 5350
-F 0 "U?" H 5600 5350 60  0000 C CNN
-F 1 "4052" H 5600 5150 60  0000 C CNN
-	1    5500 5350
-	-1   0    0    -1  
 $EndComp
 $Comp
 L TSC888 U?
@@ -189,15 +190,6 @@ F 0 "Q?" H 6803 5550 70  0000 C CNN
 F 1 "FET_N" H 6753 5053 60  0000 C CNN
 	1    6900 5300
 	1    0    0    -1  
-$EndComp
-$Comp
-L R R?
-U 1 1 4F2C9CC0
-P 7600 4750
-F 0 "R?" H 7640 4820 50  0000 C CNN
-F 1 "2.2k" H 7630 4680 50  0000 C CNN
-	1    7600 4750
-	-1   0    0    1   
 $EndComp
 $Comp
 L +12V #PWR?

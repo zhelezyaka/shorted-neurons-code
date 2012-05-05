@@ -1,4 +1,4 @@
-update=Fri 03 Feb 2012 09:35:18 PM MST
+update=Fri 24 Feb 2012 11:39:56 AM MST
 version=1
 last_client=eeschema
 [pcbnew]

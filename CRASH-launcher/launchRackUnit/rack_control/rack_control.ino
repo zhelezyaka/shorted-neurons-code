@@ -13,18 +13,22 @@ const byte RF12_RID = 0; //default to broadcast
 //io pin definitions
 //array order here is meaningful, channels 1-4 in order
 //size of coil_select array determines channel count
-const byte coil_select[] = {4, 5, 6, 7};
-const byte cont_sense[] = {A2, A3, A4, A5};
-const byte safety_coil = 8;
+const byte coil_select[] = {6,7};
+const byte cont_sense[] = {4,5};
+const byte safety_coil = 6;
 const byte beep_init_pin = 9;
 const byte link_led = 3;
 
 //ATmega 168/328 PORTD mapping for fire coils
 //order MUST map 1 to 1 to order of coil_select array
-const byte coil_portd_map[] = {B00010000,
+/*const byte coil_portd_map[] = {B00010000,
                               B00100000,
                               B01000000,
                               B10000000};
+*/
+const byte coil_portd_map[] = {B01000000,
+                               B10000000};
+
 
 //must map to pins defined in coil_select array
 const byte coil_portd_alloff = B00001111;

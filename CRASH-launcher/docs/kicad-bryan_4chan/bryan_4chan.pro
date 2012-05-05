@@ -1,6 +1,6 @@
-update=Mon 20 Feb 2012 05:14:19 PM MST
+update=Sat 05 May 2012 12:13:55 AM MDT
 version=1
-last_client=cvpcb
+last_client=eeschema
 [pcbnew]
 version=1
 PadDrlX=320
@@ -32,6 +32,13 @@ LibName10=dip_sockets
 LibName11=modules/rfm12
 LibName12=modules/LED5_RGB
 LibDir=modules/packages3d/smd;modules/packages3d
+[general]
+version=1
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [eeschema]
 version=1
 LibDir=libraries
@@ -98,10 +105,3 @@ LibName31=opto
 LibName32=atmel
 LibName33=contrib
 LibName34=valves
-[general]
-version=1
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms

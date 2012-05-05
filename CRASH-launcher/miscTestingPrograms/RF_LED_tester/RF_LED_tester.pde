@@ -21,7 +21,7 @@
 
 #define MYSELF 0x15
 
-int8_t ledPins[] = { 4,5,6, 7, 8 };
+int8_t ledPins[] = { 4,5,6,7,8 };
 boolean blinkmsg = false;
 int8_t actionPin = 0;
 boolean goodPin = false;
@@ -688,6 +688,7 @@ void setup() {
     Serial.println();
     Serial.print("ledpins is: ");
     Serial.println(sizeof(ledPins));
+    pinMode(14, OUTPUT);
     for (int t = 0; t < sizeof(ledPins); t++) {
       pinMode(ledPins[t], OUTPUT);
       digitalWrite(ledPins[t],HIGH);
@@ -697,28 +698,69 @@ void setup() {
     delay(1000);
 }
 
+int l=0;
 void loop() {
+    l++;
     if (Serial.available())
         handleInput(Serial.read());
 
-    Serial.print("   ---> A1=");
     int cont1 = analogRead(A1);
-    Serial.println(cont1);
-    if (cont1 <10) {
-      //continutity good
-      digitalWrite(5,HIGH);
-    } else {
-      //continuity bad
-      digitalWrite(5,LOW);
-    }
+    int batt = analogRead(A2);
+    if (l > 99) {
+      //delay(10);
+      cont1 = analogRead(A1);
+      //delay(10);
+      batt = analogRead(A2);
+      Serial.print(batt);
+      Serial.print("  <--batt,  cont=");
+      Serial.println(cont1);
+      l=0;
+      
+      if ( cont1 < 15) {
+          //continutity likely shorted
+          digitalWrite(14,HIGH);
+        } else {
+          //continuity bad
+          digitalWrite(14,LOW);
+        }
 
-    if (cont1 >0 && cont1 <20) {
-      //continutity marginal
-      digitalWrite(4,HIGH);
-    } else {
-      //continuity bad
-      digitalWrite(4,LOW);
-    }
+
+/*    
+      if ((batt-3) < cont1) {
+        //continutity good
+        digitalWrite(5,HIGH);
+        digitalWrite(4,LOW);
+      } else {
+        //continuity bad
+        digitalWrite(5,LOW);
+        if ((batt-7) < cont1) {
+          //continutity marginal
+          digitalWrite(4,HIGH);
+        } else {
+          //continuity bad
+          digitalWrite(4,LOW);
+        }
+  
+      }
+*/  
+      if (cont1 < 70) {
+        //continutity good
+        digitalWrite(5,HIGH);
+        digitalWrite(4,LOW);
+      } else {
+        //continuity bad
+        digitalWrite(5,LOW);
+        if ( cont1 < 100) {
+          //continutity marginal
+          digitalWrite(4,HIGH);
+        } else {
+          //continuity bad
+          digitalWrite(4,LOW);
+        }
+  
+      }
+
+  }
 
 
 
@@ -740,13 +782,14 @@ void loop() {
             Serial.print((int) rf12_grp);
         }
         Serial.print(" ");
-        Serial.print((int) rf12_hdr);
+        //Serial.print((int) rf12_hdr);
         for (byte i = 0; i < n; ++i) {
-            Serial.print("   ");
-            Serial.print((int) rf12_data[i]);
+            //Serial.print("   ");
+            //Serial.print((int) rf12_data[i]);
         //    Serial.print("=");
-        //    Serial.println(rf12_data[i]);
+            Serial.print(rf12_data[i]);
         }
+        Serial.println();
 
         if ( rf12_data[0] == 'B'
           && rf12_data[1] == 'L'
@@ -754,22 +797,22 @@ void loop() {
           && rf12_data[3] == 'N'
           && rf12_data[4] == 'K') {
             blinkmsg = true;
-            Serial.println("  BLINK message received!");
+            //Serial.println("  BLINK message received!");
         } else {
-            Serial.println("  not a valid BLINK protocol message");
+            //Serial.println("  not a valid BLINK protocol message");
             blinkmsg = false;           
         }
         if ( blinkmsg) {
           if(rf12_data[5] != MYSELF) {
              Serial.println("    ERROR: msg does not match my node ID,");
           } else {
-             Serial.println("    matches my node ID,");
+             //Serial.println("    matches my node ID,");
              
              // check if they are asking for a valid pin
              actionPin = rf12_data[6];
-             Serial.print("      checking action pin \"");
-             Serial.print(actionPin, DEC);
-             Serial.println("\"...");
+             //Serial.print("      checking action pin \"");
+             //Serial.print(actionPin, DEC);
+             //Serial.println("\"...");
 
              goodPin = false;
              for (int t = 0; t < sizeof(ledPins); t++) {
@@ -786,15 +829,15 @@ void loop() {
                    break;
                  case 'H': 
                    digitalWrite(actionPin, HIGH);
-                   Serial.print("          SUCCESS... setting pin ");
-                   Serial.print(actionPin, DEC);
-                   Serial.print(" HIGH");
+                   //Serial.print("          SUCCESS... setting pin ");
+                   //Serial.print(actionPin, DEC);
+                   //Serial.print(" HIGH");
                    break;               
                  case 'l':
                    digitalWrite(actionPin, LOW);
-                   Serial.print("          SUCCESS... setting pin ");
-                   Serial.print(actionPin, HEX);
-                   Serial.print(" low.\n");
+                   //Serial.print("          SUCCESS... setting pin ");
+                   //Serial.print(actionPin, HEX);
+                   //Serial.print(" low.\n");
                    break;
                }
              }
@@ -836,4 +879,4 @@ void loop() {
 
         activityLed(0);
     }
-}
+} 

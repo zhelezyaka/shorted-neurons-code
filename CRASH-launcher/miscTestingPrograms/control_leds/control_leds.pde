@@ -36,6 +36,8 @@ void setup () {
     
     pinMode(4,INPUT);
     digitalWrite(4, HIGH);
+    pinMode(6,INPUT);
+    digitalWrite(6, HIGH);
     pinMode(7,INPUT);
     digitalWrite(7, HIGH);
     pinMode(8,INPUT);
@@ -68,13 +70,13 @@ void loop () {
         remote_pin = remote_pin - '0';
         needToSend = 1;
     } else if (digitalRead(4) == LOW  && !digitalRead(safetySw)) {
-        
+        Serial.println("fire button depressed");
         low_count = 10;
         analogWrite(buzzerPin,240);
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
-        else if (digitalRead(8) == LOW)
-          remote_pin = 0x8;
+        else if (digitalRead(6) == LOW)
+          remote_pin = 0x6;
         else {
           remote_pin = 0;
           needToSend = 0;
@@ -92,7 +94,7 @@ void loop () {
         if (digitalRead(7) == LOW)
           remote_pin = 0x7;
         else
-          remote_pin = 0x8;
+          remote_pin = 0x6;
 
         set_state = 'l';
         if (--low_count > 0)
@@ -135,15 +137,17 @@ void loop () {
     //    needToSend = 1;
 
     if (needToSend && rf12_canSend()) {
-        //Serial.println("Preparing to send");
+        Serial.println("Preparing to send");
         needToSend = 0;
         
         //sendLed(1);
 
         byte header = 0 | RF12_HDR_DST | remote_node;
         char payload[] = {'B', 'L', 'I', 'N', 'K', remote_node, remote_pin, set_state};
+        Serial.println(remote_node, DEC);
+        Serial.println(remote_pin, DEC);
         Serial.print("Sending: ");
-        Serial.print(header);
+        //Serial.print(header);
         for (byte i = 0; i < 8; ++i)
             Serial.print(payload[i]);
         Serial.println();
