@@ -15,12 +15,12 @@ const byte RF12_RID = 21;
 //io pin definitions
 //array order here is meaningful, channels 1-4 in order
 //size of chan_select array determines channel count
-const byte chan_select[] = {4, 5, 6, 7};
-const byte cont_leds[] = {16, 17, 18, 19};
-const byte safety_pin = 8;
-const byte fire_pin = 15;
+const byte chan_select[] = {6, 7};
+const byte cont_leds[] = {18, 19};
+const byte safety_pin = 3;
+const byte fire_pin = 4;
 const byte beep_init_pin = 9;
-const byte link_led = 3;
+const byte link_led = 5;
 const byte rack_select = A0;
 
 //command codes
@@ -121,7 +121,7 @@ void loop () {
     status = status_safe;
     set_select_leds(&zero);
     digitalWrite(link_led, LOW);                                                                                                                                                                                                                                                                                                                                  
-  //  safe all 3x
+    //  safe all 3x
   }
   
   //if (no initialzed racks || init pressed)
@@ -134,6 +134,7 @@ void loop () {
   //      check status(rackID)
       if (!is_safe()) {
         status = status_console_armed;
+        Serial.println("not safe");
         if (check_fire()) {
           while (check_fire() && !is_safe()) {
   //      wait for fire button release
@@ -158,6 +159,7 @@ void loop () {
   //          error()
   //      else if same rack and channels still selected
             while (check_fire()) {
+              Serial.println("          firing");
               if (chan_state) {
                 status = status_firing;
                 launch(rackID, &chan_state);
