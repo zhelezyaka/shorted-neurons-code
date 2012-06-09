@@ -1,11 +1,18 @@
-update=Sat 05 May 2012 12:13:55 AM MDT
+update=Tue 05 Jun 2012 11:16:18 PM MDT
 version=1
 last_client=eeschema
+[general]
+version=1
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [pcbnew]
 version=1
-PadDrlX=320
-PadDimH=600
-PadDimV=600
+PadDrlX=2000
+PadDimH=3000
+PadDimV=3000
 BoardThickness=630
 TxtPcbV=800
 TxtPcbH=600
@@ -19,6 +26,7 @@ TxtLar=120
 MSegLar=150
 LastNetListRead=bryan_4chan.net
 [pcbnew/libraries]
+LibDir=modules/packages3d/smd;modules/packages3d
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -31,14 +39,8 @@ LibName9=led
 LibName10=dip_sockets
 LibName11=modules/rfm12
 LibName12=modules/LED5_RGB
-LibDir=modules/packages3d/smd;modules/packages3d
-[general]
-version=1
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
+LibName13=mounting bits
+LibName14=modules/TO220-5-pentawatt
 [eeschema]
 version=1
 LibDir=libraries

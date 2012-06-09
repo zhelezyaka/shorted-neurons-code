@@ -1,11 +1,16 @@
-EESchema-DOCLIB  Version 2.0  Date: Mon 13 Feb 2012 10:17:57 PM MST
+EESchema-DOCLIB  Version 2.0  Date: Thu 07 Jun 2012 11:19:07 PM MDT
+#
+$CMP CONN_2X8
+D ymbole general de connecteur
+K CONN
+$ENDCMP
 #
 $CMP IGNITER
 D R
 K resistor
 $ENDCMP
 #
-$CMP MAX60XX
+$CMP MAX60xx
 D Precision Voltage Reference
 K VREF
 $ENDCMP
