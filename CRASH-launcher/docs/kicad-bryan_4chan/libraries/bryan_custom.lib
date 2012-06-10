@@ -1,4 +1,4 @@
-EESchema-LIBRARY Version 2.3  Date: Thu 07 Jun 2012 11:19:07 PM MDT
+EESchema-LIBRARY Version 2.3  Date: Sat 09 Jun 2012 04:35:42 PM MDT
 #encoding utf-8
 #
 # ATMEGA328P-P
@@ -78,12 +78,12 @@ ENDDEF
 #
 DEF GND #USGND 0 40 N Y 1 F P
 F0 "#USGND" -300 -300 60 H I C CNN
-F1 "GND" 0 -235 60 H V C CNN
+F1 "GND" 0 -135 60 H V C CNN
 DRAW
-P 2 0 1 0  -50 -125  50 -125 N
-P 2 0 1 0  75 -100  -75 -100 N
-P 3 0 1 0  -10 -175  10 -175  10 -175 N
-P 3 0 1 0  25 -150  -25 -150  -25 -150 N
+P 2 0 1 0  -50 -25  50 -25 N
+P 2 0 1 0  75 0  -75 0 N
+P 3 0 1 0  -10 -75  10 -75  10 -75 N
+P 3 0 1 0  25 -50  -25 -50  -25 -50 N
 X GND ~ 0 0 100 D 50 50 1 1 W N
 ENDDRAW
 ENDDEF
