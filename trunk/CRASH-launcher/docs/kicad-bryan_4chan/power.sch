@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 08 Jun 2012 10:29:21 PM MDT
+EESchema Schematic File Version 2  date Sun 10 Jun 2012 01:48:40 AM MDT
 LIBS:bryan_custom
 LIBS:rfm12
 LIBS:LED_RGB
@@ -40,7 +40,7 @@ $Descr User 11000 8500
 encoding utf-8
 Sheet 3 6
 Title ""
-Date "8 jun 2012"
+Date "10 jun 2012"
 Rev ""
 Comp ""
 Comment1 ""
@@ -65,20 +65,14 @@ Wire Wire Line
 Wire Wire Line
 	5250 4950 5250 4400
 Wire Wire Line
-	8600 4350 7800 4350
-Wire Wire Line
-	7800 4350 7600 4350
+	8600 4350 7600 4350
 Connection ~ 2650 3850
 Connection ~ 6300 3750
 Wire Wire Line
-	9350 3350 9050 3350
-Wire Wire Line
-	9050 3350 7850 3350
+	9350 3350 7850 3350
 Connection ~ 2650 4250
 Wire Wire Line
-	3350 4250 2650 4250
-Wire Wire Line
-	2650 4250 1750 4250
+	3350 4250 1750 4250
 Wire Wire Line
 	1900 3850 1750 3850
 Connection ~ 6600 3750
@@ -97,21 +91,13 @@ Wire Wire Line
 Connection ~ 5300 4400
 Connection ~ 5500 4400
 Wire Wire Line
-	4800 3850 4550 3850
-Wire Wire Line
-	4550 3850 4150 3850
+	4800 3850 4150 3850
 Wire Wire Line
 	7550 1600 7650 1600
 Wire Wire Line
 	7650 1600 7650 1900
 Wire Wire Line
-	7200 4600 7200 4350
-Wire Wire Line
-	7200 4350 7200 3750
-Wire Wire Line
-	7200 3750 7200 2950
-Wire Wire Line
-	7200 2950 7200 1900
+	7200 4600 7200 1900
 Wire Wire Line
 	7800 4150 7800 4350
 Connection ~ 7200 3750
@@ -134,9 +120,7 @@ Wire Wire Line
 Wire Wire Line
 	7450 6250 7600 6250
 Wire Wire Line
-	6350 5500 6600 5500
-Wire Wire Line
-	6600 5500 6950 5500
+	6350 5500 6950 5500
 Wire Wire Line
 	5500 4400 5500 4600
 Wire Wire Line
@@ -145,28 +129,12 @@ Connection ~ 4550 3850
 Wire Wire Line
 	3350 2950 3700 2950
 Wire Wire Line
-	3550 3850 3350 3850
-Wire Wire Line
-	3350 3850 2650 3850
-Wire Wire Line
-	2650 3850 2500 3850
+	3550 3850 2500 3850
 Connection ~ 3350 3850
 Wire Wire Line
-	6000 3750 6300 3750
+	6000 3750 6800 3750
 Wire Wire Line
-	6300 3750 6600 3750
-Wire Wire Line
-	6600 3750 6800 3750
-Wire Wire Line
-	4550 4400 5250 4400
-Wire Wire Line
-	5250 4400 5300 4400
-Wire Wire Line
-	5300 4400 5500 4400
-Wire Wire Line
-	5500 4400 6000 4400
-Wire Wire Line
-	6000 4400 6600 4400
+	4550 4400 6600 4400
 Connection ~ 6000 4400
 Connection ~ 6600 5500
 Wire Wire Line
@@ -179,9 +147,7 @@ Connection ~ 7800 4350
 Wire Wire Line
 	7600 2950 7850 2950
 Wire Wire Line
-	9450 3750 8600 3750
-Wire Wire Line
-	8600 3750 7800 3750
+	9450 3750 7800 3750
 Connection ~ 8600 3750
 $Comp
 L PWR_FLAG #FLG018
