@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Sun 10 Jun 2012 12:01:55 AM MDT
+Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Sun 10 Jun 2012 11:50:17 PM MDT
 
 BeginCmp
 TimeStamp = /4F25C46A/4F87B8C5;
@@ -281,6 +281,20 @@ IdModule  = PIN_ARRAY_5x1;
 EndCmp
 
 BeginCmp
+TimeStamp = /4F25C46A/4FD54A61;
+Reference = K12;
+ValeurCmp = SAFETY_SW;
+IdModule  = PIN_ARRAY_3X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25C46A/4FD54E7C;
+Reference = K13;
+ValeurCmp = FIRE_SW;
+IdModule  = PIN_ARRAY_3X1;
+EndCmp
+
+BeginCmp
 TimeStamp = /4F25D726/4F87B03D;
 Reference = L1;
 ValeurCmp = 20uH;
@@ -470,6 +484,13 @@ IdModule  = TO92-123;
 EndCmp
 
 BeginCmp
+TimeStamp = /4F25D726/4FD5598B;
+Reference = Q3;
+ValeurCmp = MOSFET_N;
+IdModule  = DPAKGDS;
+EndCmp
+
+BeginCmp
 TimeStamp = /4F25D726/4EAB7AD9;
 Reference = R1;
 ValeurCmp = 39k;
@@ -557,6 +578,13 @@ BeginCmp
 TimeStamp = /4F25C46A/4FD3D916;
 Reference = R13;
 ValeurCmp = 47;
+IdModule  = R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25C46A/4FD54FDD;
+Reference = R14;
+ValeurCmp = 1k;
 IdModule  = R3-LARGE_PADS;
 EndCmp
 
