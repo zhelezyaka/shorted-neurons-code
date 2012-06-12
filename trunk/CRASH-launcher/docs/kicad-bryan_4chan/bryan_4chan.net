@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun 10 Jun 2012 11:50:17 PM MDT
+# EESchema Netlist Version 1.1 created  Mon 11 Jun 2012 11:30:14 PM MDT
 (
  ( /4F25C46A/4F87B8C5 CP14 Antenna1 CONN_1
   ( 1 N-000030 )
@@ -224,11 +224,11 @@
   ( 2 N-000016 )
   ( 3 GND )
  )
- ( /4F25D726/4F87B03D INDUCTOR_V L1 20uH
+ ( /4F25D726/4F87B03D ALTNC_S L1 20uH
   ( 1 N-000160 )
   ( 2 VDD )
  )
- ( /4F25D726/4F8798BE INDUCTOR_V L2 150uH
+ ( /4F25D726/4F8798BE ALTNC_S L2 150uH
   ( 1 N-000157 )
   ( 2 N-000160 )
  )
@@ -480,7 +480,7 @@
   ( 8 adc.8 )
   ( 9 VDD )
  )
- ( /4F25D726/4E55D04D R-22x10 RSHUNT1 0.005
+ ( /4F25D726/4E55D04D R7 RSHUNT1 0.005
   ( 1 +12V )
   ( 2 N-000158 )
  )

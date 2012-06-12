@@ -1,0 +1,35 @@
+atmega328P-PU 28 pin DIP
+
+AVR
+phys	Arduino		N-chan
+pin	pin	Desc	universal unit
+----    ------  ------  --------------
+1		*RST
+2	D0/RX	*RX                     
+3	D1/TX	*TX     		
+4	D2		RF-INT
+5	D3		swCoil/switch
+6	D4		link/actionLed
+7		*Vcc
+8		*GND
+9		*xtal1  8MHz
+10		*xtal2
+11	D5		gpio-select-0  (on both units, 8 leds per register, or 16 even :)
+12	D6		shiftRegChain2  (on rack unit, channel outputs either direct to FET or to darlington array inputs if using relays)
+13	D7		analogMuxSelect
+14	D8		fireButton/initButton
+15	D9		PWM buzzer
+16	D10	SS	RF-SEL
+17	D11	MOSI	RF-DI, adcMuxSelect0, shiftRegDI 
+18	D12	MISO	RF-DO, adcMuxSelect1, shiftRegDO (if shft registers used for input)
+19	D13	SCK	RF-CLK, adcMuxSelect2, shiftRegClock
+20		*AVcc
+21		*AREF
+22		*GND
+23	A0/D14		sense-BATT
+24	A1/D15		sense-AMPS
+25	A2/D16		analogMuxInA
+26	A3/D17		analogMuxInB
+27	A4/D18	SDA
+28	A5/D19	SCL
+
