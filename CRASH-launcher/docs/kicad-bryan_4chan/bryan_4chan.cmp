@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Sun 10 Jun 2012 11:50:17 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Mon 11 Jun 2012 11:30:14 PM MDT
 
 BeginCmp
 TimeStamp = /4F25C46A/4F87B8C5;
@@ -298,14 +298,14 @@ BeginCmp
 TimeStamp = /4F25D726/4F87B03D;
 Reference = L1;
 ValeurCmp = 20uH;
-IdModule  = INDUCTOR_V;
+IdModule  = ALTNC_S;
 EndCmp
 
 BeginCmp
 TimeStamp = /4F25D726/4F8798BE;
 Reference = L2;
 ValeurCmp = 150uH;
-IdModule  = INDUCTOR_V;
+IdModule  = ALTNC_S;
 EndCmp
 
 BeginCmp
@@ -599,7 +599,7 @@ BeginCmp
 TimeStamp = /4F25D726/4E55D04D;
 Reference = RSHUNT1;
 ValeurCmp = 0.005;
-IdModule  = R-22x10;
+IdModule  = R7;
 EndCmp
 
 BeginCmp

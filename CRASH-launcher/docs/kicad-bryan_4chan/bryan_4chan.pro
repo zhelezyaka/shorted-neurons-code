@@ -1,4 +1,4 @@
-update=Sun 10 Jun 2012 01:28:39 AM MDT
+update=Mon 11 Jun 2012 11:28:27 PM MDT
 version=1
 last_client=pcbnew
 [eeschema]
@@ -104,3 +104,4 @@ LibName8=valves
 LibName9=led
 LibName10=dip_sockets
 LibName11=modules/OPENHARDWARE
+LibName12=modules/packages3d/smd/inductances
