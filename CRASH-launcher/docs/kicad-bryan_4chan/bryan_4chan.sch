@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun 10 Jun 2012 11:49:54 PM MDT
+EESchema Schematic File Version 2  date Wed 13 Jun 2012 10:43:09 PM MDT
 LIBS:bryan_custom
 LIBS:rfm12
 LIBS:LED_RGB
