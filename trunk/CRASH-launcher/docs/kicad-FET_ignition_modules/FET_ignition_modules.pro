@@ -1,6 +1,6 @@
-update=Fri 15 Jun 2012 12:27:16 AM MDT
+update=Sat 16 Jun 2012 09:44:43 PM MDT
 version=1
-last_client=pcbnew
+last_client=kicad
 [cvpcb]
 version=1
 NetITyp=0
@@ -74,8 +74,6 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
-[general]
-version=1
 [pcbnew]
 version=1
 PadDrlX=320
@@ -106,3 +104,5 @@ LibName8=valves
 LibName9=led
 LibName10=dip_sockets
 LibName11=modules/mounting bits
+[general]
+version=1

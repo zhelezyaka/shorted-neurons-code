@@ -1,4 +1,4 @@
-EESchema-LIBRARY Version 2.3  Date: Fri 15 Jun 2012 01:25:22 AM MDT
+EESchema-LIBRARY Version 2.3  Date: Fri 15 Jun 2012 06:22:16 PM MDT
 #encoding utf-8
 #
 # +12V
@@ -10,6 +10,24 @@ DRAW
 X +12V 1 0 0 0 U 20 30 0 0 W N
 C 0 60 20 0 1 0 N
 P 3 0 1 0  0 0  0 40  0 40 N
+ENDDRAW
+ENDDEF
+#
+# C
+#
+DEF C C 0 10 N Y 1 F N
+F0 "C" 50 100 50 H V L CNN
+F1 "C" 50 -100 50 H V L CNN
+$FPLIST
+ SM*
+ C?
+ C1-1
+$ENDFPLIST
+DRAW
+P 2 0 1 10  -100 -30  100 -30 N
+P 2 0 1 10  -100 30  100 30 N
+X ~ 1 0 200 170 D 40 40 1 1 P
+X ~ 2 0 -200 170 U 40 40 1 1 P
 ENDDRAW
 ENDDEF
 #
