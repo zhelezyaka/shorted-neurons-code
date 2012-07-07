@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Wed 13 Jun 2012 10:43:09 PM MDT
+EESchema Schematic File Version 2  date Fri 06 Jul 2012 11:04:22 PM MDT
 LIBS:bryan_custom
 LIBS:rfm12
 LIBS:LED_RGB
@@ -40,7 +40,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 4 6
 Title ""
-Date "11 jun 2012"
+Date "7 jul 2012"
 Rev ""
 Comp ""
 Comment1 ""
@@ -48,24 +48,11 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Comp
-L CONN_3 K10
-U 1 1 4FD3DBC5
-P 3900 5050
-F 0 "K10" V 3850 5050 50  0000 C CNN
-F 1 "CONN_3" V 3950 5050 40  0000 C CNN
-	1    3900 5050
-	0    1    1    0   
-$EndComp
-$Comp
-L CONN_5 P11
-U 1 1 4FD3DBBF
-P 4300 5100
-F 0 "P11" V 4250 5100 50  0000 C CNN
-F 1 "CONN_5" V 4350 5100 50  0000 C CNN
-	1    4300 5100
-	0    1    1    0   
-$EndComp
+Wire Wire Line
+	6100 2300 6100 2050
+Wire Wire Line
+	7000 3950 7000 3450
+Connection ~ 6100 2700
 Connection ~ 3800 3150
 Wire Wire Line
 	3800 4700 3800 2700
@@ -95,8 +82,6 @@ Wire Wire Line
 Wire Wire Line
 	6200 4200 6050 4200
 Wire Wire Line
-	7000 3550 7000 3450
-Wire Wire Line
 	7000 3450 6050 3450
 Wire Wire Line
 	6050 3900 6350 3900
@@ -106,8 +91,6 @@ Wire Wire Line
 	6350 2900 6350 3150
 Wire Wire Line
 	6350 3150 6050 3150
-Wire Wire Line
-	6050 3300 6350 3300
 Wire Wire Line
 	6050 3750 6350 3750
 Wire Wire Line
@@ -167,6 +150,57 @@ Wire Wire Line
 	4100 4700 4100 2700
 Wire Wire Line
 	3900 4700 3900 2700
+Wire Wire Line
+	7500 3300 6050 3300
+Wire Wire Line
+	7350 3700 7000 3700
+Connection ~ 7000 3700
+Connection ~ 7350 3300
+$Comp
+L GND #U034
+U 1 1 4FF7BDAE
+P 6100 2050
+F 0 "#U034" H 6150 2100 60  0001 C CNN
+F 1 "GND" H 6100 1815 60  0000 C CNN
+	1    6100 2050
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C19
+U 1 1 4FF7BD94
+P 7350 3500
+F 0 "C19" H 7400 3600 50  0000 L CNN
+F 1 "0.1uF" H 7400 3400 50  0000 L CNN
+	1    7350 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C18
+U 1 1 4FF7BD7A
+P 6100 2500
+F 0 "C18" H 6150 2600 50  0000 L CNN
+F 1 "0.1uF" H 6150 2400 50  0000 L CNN
+	1    6100 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_3 K10
+U 1 1 4FD3DBC5
+P 3900 5050
+F 0 "K10" V 3850 5050 50  0000 C CNN
+F 1 "CONN_3" V 3950 5050 40  0000 C CNN
+	1    3900 5050
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_5 P11
+U 1 1 4FD3DBBF
+P 4300 5100
+F 0 "P11" V 4250 5100 50  0000 C CNN
+F 1 "CONN_5" V 4350 5100 50  0000 C CNN
+	1    4300 5100
+	0    1    1    0   
+$EndComp
 $Comp
 L RR8 RR1
 U 1 1 4FD3D4A2
@@ -177,19 +211,19 @@ F 1 "RR8" V 4280 2350 70  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L VDD #PWR038
+L VDD #PWR035
 U 1 1 4FCD3FFB
 P 6350 2900
-F 0 "#PWR038" H 6350 3000 30  0001 C CNN
+F 0 "#PWR035" H 6350 3000 30  0001 C CNN
 F 1 "VDD" H 6350 3010 30  0000 C CNN
 	1    6350 2900
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR039
+L GND #PWR036
 U 1 1 4FCC1CD3
 P 6200 4450
-F 0 "#PWR039" H 6200 4450 30  0001 C CNN
+F 0 "#PWR036" H 6200 4450 30  0001 C CNN
 F 1 "GND" H 6200 4380 30  0001 C CNN
 	1    6200 4450
 	1    0    0    -1  
@@ -211,12 +245,12 @@ adc.2
 Text GLabel 3200 2800 0    60   BiDi ~ 0
 adc.1
 $Comp
-L GND #U040
+L GND #U037
 U 1 1 4F25EE87
-P 7000 3550
-F 0 "#U040" H 7050 3600 60  0001 C CNN
-F 1 "GND" H 7000 3315 60  0000 C CNN
-	1    7000 3550
+P 7000 3950
+F 0 "#U037" H 7050 4000 60  0001 C CNN
+F 1 "GND" H 7000 3715 60  0000 C CNN
+	1    7000 3950
 	1    0    0    -1  
 $EndComp
 Text HLabel 6350 4050 2    60   Input ~ 12
@@ -225,7 +259,7 @@ Text HLabel 6350 3900 2    60   Input ~ 12
 MOSI
 Text HLabel 6350 3750 2    60   Input ~ 12
 MISO
-Text HLabel 6350 3300 2    60   Input ~ 12
+Text HLabel 7500 3300 2    60   Input ~ 12
 VREF
 Text HLabel 6350 3600 2    60   Input ~ 12
 SCK
