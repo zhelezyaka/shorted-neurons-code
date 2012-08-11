@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 06 Jul 2012 11:04:22 PM MDT
+EESchema Schematic File Version 2  date Tue 07 Aug 2012 08:07:43 PM MDT
 LIBS:bryan_custom
 LIBS:rfm12
 LIBS:LED_RGB
@@ -40,7 +40,7 @@ $Descr User 11000 8500
 encoding utf-8
 Sheet 1 6
 Title ""
-Date "7 jul 2012"
+Date "7 aug 2012"
 Rev ""
 Comp ""
 Comment1 ""

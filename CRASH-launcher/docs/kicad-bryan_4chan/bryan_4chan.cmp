@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Fri 06 Jul 2012 10:42:17 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-05-25)-stable date = Mon 06 Aug 2012 08:41:33 PM MDT
 
 BeginCmp
 TimeStamp = /4F25C46A/4F87B8C5;
@@ -24,7 +24,7 @@ EndCmp
 BeginCmp
 TimeStamp = /4F25D726/4EAB7ADE;
 Reference = C2;
-ValeurCmp = 3300uF;
+ValeurCmp = 100uF;
 IdModule  = C2V8;
 EndCmp
 
@@ -38,7 +38,7 @@ EndCmp
 BeginCmp
 TimeStamp = /4F25D726/4F87B04B;
 Reference = C4;
-ValeurCmp = 3300uF;
+ValeurCmp = 100uF;
 IdModule  = C2V8;
 EndCmp
 
@@ -213,6 +213,27 @@ EndCmp
 BeginCmp
 TimeStamp = /4F25C46A/4FD3D858;
 Reference = D10;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207B20;
+Reference = D11;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207C00;
+Reference = D12;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207C56;
+Reference = D13;
 ValeurCmp = LED;
 IdModule  = LED-3MM;
 EndCmp
@@ -617,6 +638,34 @@ IdModule  = R3-LARGE_PADS;
 EndCmp
 
 BeginCmp
+TimeStamp = /4F25D726/501F0898;
+Reference = R15;
+ValeurCmp = 1k;
+IdModule  = R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207F67;
+Reference = R16;
+ValeurCmp = 1k;
+IdModule  = R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207EEC;
+Reference = R17;
+ValeurCmp = 1k;
+IdModule  = R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50207EAF;
+Reference = R18;
+ValeurCmp = 1.8k;
+IdModule  = R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
 TimeStamp = /4F25C496/4FD3D4A2;
 Reference = RR1;
 ValeurCmp = RR8;
@@ -635,6 +684,20 @@ TimeStamp = /4F25C46A/4FCD4151;
 Reference = SW1;
 ValeurCmp = SW_PUSH;
 IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/50200166;
+Reference = TST-VDD1;
+ValeurCmp = TST-VDD;
+IdModule  = PINTST;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F25D726/502001AD;
+Reference = TST-VREF1;
+ValeurCmp = TST-VREF;
+IdModule  = PINTST;
 EndCmp
 
 BeginCmp
