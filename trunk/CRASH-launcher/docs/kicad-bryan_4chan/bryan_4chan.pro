@@ -1,4 +1,4 @@
-update=Mon 11 Jun 2012 11:28:27 PM MDT
+update=Mon 06 Aug 2012 09:56:31 PM MDT
 version=1
 last_client=pcbnew
 [eeschema]
@@ -105,3 +105,4 @@ LibName9=led
 LibName10=dip_sockets
 LibName11=modules/OPENHARDWARE
 LibName12=modules/packages3d/smd/inductances
+LibName13=modules/OPENLAUNCHER

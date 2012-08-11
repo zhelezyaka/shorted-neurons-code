@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 06 Jul 2012 11:04:22 PM MDT
+EESchema Schematic File Version 2  date Tue 07 Aug 2012 08:07:43 PM MDT
 LIBS:bryan_custom
 LIBS:rfm12
 LIBS:LED_RGB
@@ -40,7 +40,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 4 6
 Title ""
-Date "7 jul 2012"
+Date "7 aug 2012"
 Rev ""
 Comp ""
 Comment1 ""
@@ -157,10 +157,10 @@ Wire Wire Line
 Connection ~ 7000 3700
 Connection ~ 7350 3300
 $Comp
-L GND #U034
+L GND #U037
 U 1 1 4FF7BDAE
 P 6100 2050
-F 0 "#U034" H 6150 2100 60  0001 C CNN
+F 0 "#U037" H 6150 2100 60  0001 C CNN
 F 1 "GND" H 6100 1815 60  0000 C CNN
 	1    6100 2050
 	-1   0    0    1   
@@ -211,19 +211,19 @@ F 1 "RR8" V 4280 2350 70  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L VDD #PWR035
+L VDD #PWR038
 U 1 1 4FCD3FFB
 P 6350 2900
-F 0 "#PWR035" H 6350 3000 30  0001 C CNN
+F 0 "#PWR038" H 6350 3000 30  0001 C CNN
 F 1 "VDD" H 6350 3010 30  0000 C CNN
 	1    6350 2900
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR036
+L GND #PWR039
 U 1 1 4FCC1CD3
 P 6200 4450
-F 0 "#PWR036" H 6200 4450 30  0001 C CNN
+F 0 "#PWR039" H 6200 4450 30  0001 C CNN
 F 1 "GND" H 6200 4380 30  0001 C CNN
 	1    6200 4450
 	1    0    0    -1  
@@ -245,10 +245,10 @@ adc.2
 Text GLabel 3200 2800 0    60   BiDi ~ 0
 adc.1
 $Comp
-L GND #U037
+L GND #U040
 U 1 1 4F25EE87
 P 7000 3950
-F 0 "#U037" H 7050 4000 60  0001 C CNN
+F 0 "#U040" H 7050 4000 60  0001 C CNN
 F 1 "GND" H 7000 3715 60  0000 C CNN
 	1    7000 3950
 	1    0    0    -1  
