@@ -1,6 +1,6 @@
-update=Sat 16 Jun 2012 09:44:43 PM MDT
+update=Sat 11 Aug 2012 11:25:56 PM MDT
 version=1
-last_client=kicad
+last_client=pcbnew
 [cvpcb]
 version=1
 NetITyp=0
@@ -74,6 +74,8 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
+[general]
+version=1
 [pcbnew]
 version=1
 PadDrlX=320
@@ -104,5 +106,5 @@ LibName8=valves
 LibName9=led
 LibName10=dip_sockets
 LibName11=modules/mounting bits
-[general]
-version=1
+LibName12=/home/bts/playtime/shorted-neurons-code/CRASH-launcher/docs/kicad-bryan_4chan/modules/OPENHARDWARE
+LibName13=/home/bts/playtime/shorted-neurons-code/CRASH-launcher/docs/kicad-bryan_4chan/modules/OPENLAUNCHER
