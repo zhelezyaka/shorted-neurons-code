@@ -23,6 +23,7 @@
 // constants won't change. Used here to 
 // set pin numbers:
 const int ledPin =  0;      // the number of the LED pin
+const int adjPin =  3;      // the number of the LED pin
 
 // Variables will change:
 int ledState = LOW;             // ledState used to set the LED
@@ -35,6 +36,7 @@ long interval = 1000;           // interval at which to blink (milliseconds)
 void setup() {
   // set the digital pin as output:
   pinMode(ledPin, OUTPUT);      
+  pinMode(adjPin, INPUT);      
 }
 
 void loop()
@@ -53,9 +55,13 @@ void loop()
       //ledState = HIGH;
     //else
       //ledState = LOW;
-    interval = random(8,250);
+    int adj = analogRead(adjPin);
+    interval = random(80,adj*2);
     // set the LED with the ledState of the variable:
     //digitalWrite(ledPin, ledState);
-    analogWrite(ledPin, interval);
+    analogWrite(ledPin, random(100,180));
+    
+    
   }
+  
 }
