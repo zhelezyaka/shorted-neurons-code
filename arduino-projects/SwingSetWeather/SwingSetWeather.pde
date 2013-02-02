@@ -16,7 +16,7 @@
 #include <PString.h>
 // Flash has to come after Streaming because of conflicting definition of endl
 #include <Flash.h>
-#include "WProgram.h"
+#include <WProgram.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -679,8 +679,6 @@ void loop() {
 
     rf12_sleep(RF12_WAKEUP);
     activityLed(1);
-    delay(20);
-    activityLed(0);
 
     //pinMode(chargerPin, OUTPUT);
     digitalWrite(chargerPin, chargerOff);
@@ -738,20 +736,14 @@ void loop() {
       Serial.println();
 
       if (rf12_crc == 0) {
-        activityLed(1);
-
-
         if (RF12_WANTS_ACK && (config.nodeId & COLLECT) == 0) {
           Serial.println(" -> ack");
           rf12_sendStart(RF12_ACK_REPLY, 0, 0);
         }
-
-        activityLed(0);
       }
     }
 
     if (cmd && rf12_canSend()) {
-      activityLed(1);
 
       Serial.print(" -> ");
       Serial.print((int) sendLen);
@@ -761,8 +753,6 @@ void loop() {
         header |= RF12_HDR_DST | dest;
       rf12_sendStart(header, testbuf, sendLen);
       cmd = 0;
-
-      activityLed(0);
     }
 
     seq++;
@@ -800,19 +790,20 @@ void loop() {
       Serial.print(payload[i]);
     Serial.println();
     rf12_sendStart(header, payload, sizeof payload);
-    activityLed(1);
-    delay(20);
     activityLed(0);
+    delay(20);
+    activityLed(1);
 
     //again
     rf12_sendStart(header, payload, sizeof payload);
-    activityLed(1);
-    delay(20);
     activityLed(0);
+    delay(20);
+    activityLed(1);
 
     rf12_sleep(RF12_SLEEP);
 
     delay(20);
+    activityLed(0);
         
   sleepWithBeacon(26);  //(26 = ~60 seconds between shots)
 }
