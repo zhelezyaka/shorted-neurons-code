@@ -19,7 +19,8 @@
 #include <WProgram.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
+#include <FreqCount.h>
+#include <Wire.h>
 
 
 
@@ -241,7 +242,53 @@ void sleepWithBeacon(int dur) {
 
 
 
+/* -------------------------------------------------------------- */
 
+// Set the TMP Address and Resolution here
+int tmpAddress = B1001000;
+int ResolutionBits = 12;
+float tmp101 = -442.42;
+
+#define rhSensorPower 4 // pin D7 in arduinospeak
+
+// Display TMP100 readout to serial
+// Fork Robotics 2012
+//
+
+float getTemperature(){
+  Wire.requestFrom(tmpAddress,2);
+  byte MSB = Wire.receive();
+  byte LSB = Wire.receive();
+
+  int TemperatureSum = ((MSB << 8) | LSB) >> 4;
+
+  float celsius = TemperatureSum*0.0625;
+  //float fahrenheit = (1.8 * celsius) + 32;
+  tmp101 = (1.8 * celsius) + 32;
+  
+    Serial.print("TMP101 temp=");
+    Serial.print(celsius);
+    Serial.print("C, ");
+    Serial.print(tmp101);
+    Serial.println("F");
+  
+  return(tmp101);
+}
+
+void SetResolution(){
+
+  if (ResolutionBits < 9 || ResolutionBits > 12) exit;
+  Wire.beginTransmission(tmpAddress);
+  Wire.send(B00000001); //addresses the configuration register
+  Wire.send((ResolutionBits-9) << 5); //writes the resolution bits
+  Wire.endTransmission();
+
+  Wire.beginTransmission(tmpAddress); //resets to reading the temperature
+  Wire.send((byte)0x00);
+  Wire.endTransmission();
+}
+
+/*-----------------------------------------------------------------*/
 
 
 
@@ -625,6 +672,7 @@ static void handleInput (char c) {
 }
 
 int seq = 0;
+float relativeHumidity = 0.01;
 
 void setup() {
   Serial.begin(57600);
@@ -633,6 +681,9 @@ void setup() {
   setupWatchdog();
   pinMode(actLed, OUTPUT);
 
+  Wire.begin();        // join i2c bus (address optional for master)
+  SetResolution(); //set TMP101 sensor resolution
+  pinMode(rhSensorPower, OUTPUT);
 
   Serial.println("tempsetup next");
   delay(39);
@@ -671,6 +722,41 @@ void setup() {
 
 
 }
+
+
+float rhloop() {
+
+
+  //digitalWrite(rhSensorPower, HIGH);  // this is now done in main loop so that i2c bus doesnt get hosed 
+
+  FreqCount.begin(1000);
+  delay(2500);
+  if (FreqCount.available()) {
+    unsigned long count = FreqCount.read();
+    Serial.print(", frequency= ");
+    Serial.print(count);
+    
+    Serial.print("Hz, RH = ");
+    Serial.print(", RH = ");
+    Serial.print( ( (float) (7658-count)*364)/4096.0);
+    Serial.println("%");
+    relativeHumidity = (((float) (7658-count)*364)/4096.0);
+
+  }
+  FreqCount.end();
+  //digitalWrite(rhSensorPower, LOW);  // this is now done in main loop so that i2c bus doesnt get hosed
+  delay(100);
+  Serial.println("leaving RH...");
+  return(relativeHumidity);
+}
+
+
+
+
+
+
+
+
 int foo=60;
 void loop() {
   if (Serial.available())
@@ -757,6 +843,15 @@ void loop() {
 
     seq++;
     temploop();
+
+    digitalWrite(rhSensorPower, HIGH);  
+    rhloop();
+    Serial.println(F("next is getTemperature"));
+    getTemperature();
+    Serial.println(F("back from getTemperature"));
+
+    digitalWrite(rhSensorPower, LOW);  
+    
     //byte header = 0 | RF12_HDR_DST | remote_node;
     //byte header = 0 | RF12_HDR_DST | 0x15;
     byte header = 0;
@@ -766,8 +861,10 @@ void loop() {
     Serial.print("tempF is ");
     Serial.println(tempF);
     int tempF100 = (DallasTemperature::toFahrenheit(tempC)) *100;
-    char payload[60] = "                                                           ";
-    int n=sprintf (payload, "i=%d,t=%d.%02d,b=%dmV,s=%dmV,c=%c ", seq, tempF100/100, tempF100%100, batteryMillivolts,solarMillivolts,chargeStat);
+    int tmp101100 = (tmp101 * 100);
+    int rh100 = (relativeHumidity * 100);
+    char payload[64] = "                                                                ";
+    int n=sprintf (payload, "i=%d,t1=%d.%02d,t2=%d.%02d,rH=%d.%02d,b=%dmV,s=%dmV,c=%c ", seq, tempF100/100, tempF100%100, tmp101100/100, tmp101100%100, rh100/100, rh100%100, batteryMillivolts,solarMillivolts,chargeStat);
 
     /*        char payload[] = {'t', '=',
      ((tempC100 / 1000)+48),
