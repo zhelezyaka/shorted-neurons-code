@@ -43,13 +43,16 @@
 #define AREFSource EXTERNAL
 #define AREFmult 3000
 #define AREFdiv 2      // ADC voltage divider is ratio 2:1
-#define battSensePin 14
-#define solarSensePin 15
-#define solarThreshold 2500
+//#define battSensePin 14
+//#define solarSensePin 15
+const int battSensePin = A0;
+const int solarSensePin = A1;
+#define solarThreshold 1880
 #define chargerPin 8
-#define chargerOff HIGH
-#define chargerOn LOW
+#define chargerOff LOW
+#define chargerOn HIGH
 #define batteryMax 3360
+#define batteryMinForHumidity 3200 // battery should be in good shape for humidity since it costs more juice
 #define winkTime 30
 
 /**********************************
@@ -318,12 +321,20 @@ void printAddress(DeviceAddress deviceAddress)
 int batteryMillivolts = 0;
 int solarMillivolts = 0;
 char chargeStat = '-';
+long v = 0;
 int getMv(int apin) {
-  long v = analogRead(apin);
-  //Serial.println(v);
+  v = analogRead(apin);
+  Serial.print("apin is ");
+  Serial.print(apin);
+  Serial.print(" value=");
+  Serial.print(v);
+  // mv = raw * 2 * 3000 / 1024
+    // 512 * 2 * 3000
   v = v * AREFdiv * AREFmult / 1024;
   //Serial.println(apin);
   //Serial.println(v);
+  Serial.print(" mv=");
+  Serial.println(int(v));
   return int(v);
 }
 
@@ -331,17 +342,17 @@ void tempsetup(void)
 {
   // start serial port
   //Serial.begin(57600);
-  Serial.println("Dallas Temperature IC Control Library Demo");
+  Serial.println(F("Dallas Temperature IC Control Library Demo"));
 
   // locate devices on the bus
-  Serial.print("Locating devices...");
+  Serial.print(F("Locating devices..."));
   sensors.begin();
-  Serial.print("Found ");
+  Serial.print(F("Found "));
   Serial.print(sensors.getDeviceCount(), DEC);
   Serial.println(" devices.");
 
   // report parasite power requirements
-  Serial.print("Parasite power is: "); 
+  Serial.print(F("Parasite power is: ")); 
   if (sensors.isParasitePowerMode()) Serial.println("ON");
   else Serial.println("OFF");
 
@@ -583,10 +594,11 @@ static void showString (PGM_P s) {
 static void showHelp () {
   showString(helpText1);
 
-  Serial.println("Current configuration:");
+  Serial.println(F("Current configuration:"));
   rf12_config();
 }
 
+/*
 static void handleInput (char c) {
   if ('0' <= c && c <= '9')
     value = 10 * value + c - '0';
@@ -671,6 +683,8 @@ static void handleInput (char c) {
     showHelp();
 }
 
+*/
+
 int seq = 0;
 float relativeHumidity = 0.01;
 
@@ -716,7 +730,8 @@ void setup() {
 
   pinMode(battSensePin, INPUT);    
   pinMode(solarSensePin, INPUT);
-  digitalWrite(solarSensePin, LOW); // make sure pullup is turned off so that we dont oscillate the thing
+  //digitalWrite(battSensePin, LOW); // make sure pullup is turned off so that we dont oscillate the thing
+  //digitalWrite(solarSensePin, LOW); // make sure pullup is turned off so that we dont oscillate the thing
   pinMode(chargerPin, OUTPUT);
   digitalWrite(chargerPin, chargerOn);
 
@@ -733,7 +748,7 @@ float rhloop() {
   delay(2500);
   if (FreqCount.available()) {
     unsigned long count = FreqCount.read();
-    Serial.print(", frequency= ");
+    Serial.print(F(", frequency= "));
     Serial.print(count);
     
     Serial.print("Hz, RH = ");
@@ -751,23 +766,36 @@ float rhloop() {
 }
 
 
+void chkMem() {
+  Serial.print(F("chkMem free= "));
+  Serial.print(availableMemory());
+  Serial.print(F(", memory used="));
+  Serial.println(2048-availableMemory());
 
+}
 
-
+int availableMemory() {
+ int size = 2048;
+ byte *buf;
+ while ((buf = (byte *) malloc(--size)) == NULL);
+ free(buf);
+ return size;
+} 
 
 
 
 int foo=60;
 void loop() {
-  if (Serial.available())
-    handleInput(Serial.read());
+  //if (Serial.available())
+  //  handleInput(Serial.read());
 
+  chkMem();
 
     rf12_sleep(RF12_WAKEUP);
     activityLed(1);
 
     //pinMode(chargerPin, OUTPUT);
-    digitalWrite(chargerPin, chargerOff);
+    //digitalWrite(chargerPin, chargerOff);
     delay(10);
     batteryMillivolts = getMv(battSensePin);
     delay(10);
@@ -782,10 +810,10 @@ void loop() {
       else {
         chargeStat = '-';
         //leave it however it was?
-        //digitalWrite(chargerPin, chargerOff);
+        digitalWrite(chargerPin, chargerOff);
         // or go high impedance:
         //pinMode(chargerPin, INPUT);
-        digitalWrite(chargerPin, chargerOn); // turn off the pullup
+        //digitalWrite(chargerPin, chargerOn); // turn off the pullup
       }
     } 
     else {
@@ -843,14 +871,24 @@ void loop() {
 
     seq++;
     temploop();
+    digitalWrite(rhSensorPower, HIGH); // have to turn power on so i2c doesnt get hosed     
 
-    digitalWrite(rhSensorPower, HIGH);  
-    rhloop();
+    if (batteryMillivolts > batteryMinForHumidity ){ 
+      // spin up the sensor and do a humidity reading
+      digitalWrite(rhSensorPower, HIGH);  
+      rhloop();
+
+    } else {
+      //skip power hungry humidity reading
+      Serial.println(F("battery is too low, skipping humidity check"));
+      relativeHumidity = -1;
+    }
+    
     Serial.println(F("next is getTemperature"));
     getTemperature();
     Serial.println(F("back from getTemperature"));
 
-    digitalWrite(rhSensorPower, LOW);  
+    digitalWrite(rhSensorPower, LOW);      
     
     //byte header = 0 | RF12_HDR_DST | remote_node;
     //byte header = 0 | RF12_HDR_DST | 0x15;
@@ -863,7 +901,7 @@ void loop() {
     int tempF100 = (DallasTemperature::toFahrenheit(tempC)) *100;
     int tmp101100 = (tmp101 * 100);
     int rh100 = (relativeHumidity * 100);
-    char payload[64] = "                                                                ";
+    char payload[64] = "                                                               ";
     int n=sprintf (payload, "i=%d,t1=%d.%02d,t2=%d.%02d,rH=%d.%02d,b=%dmV,s=%dmV,c=%c ", seq, tempF100/100, tempF100%100, tmp101100/100, tmp101100%100, rh100/100, rh100%100, batteryMillivolts,solarMillivolts,chargeStat);
 
     /*        char payload[] = {'t', '=',
@@ -903,5 +941,7 @@ void loop() {
     activityLed(0);
         
   sleepWithBeacon(26);  //(26 = ~60 seconds between shots)
+  //sleepWithBeacon(1);  //(26 = ~60 seconds between shots)
+  
 }
 
