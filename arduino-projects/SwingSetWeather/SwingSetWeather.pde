@@ -3,7 +3,7 @@
 // $Id: RF12demo.pde 7686 2011-05-19 13:07:57Z jcw $
 
 // this version adds flash memory support, 2009-11-19
-
+//#define RECV_MODE 1
 
 #include <Ports.h>
 #include <RF12.h>
@@ -21,7 +21,9 @@
 #include <DallasTemperature.h>
 #include <FreqCount.h>
 #include <Wire.h>
+#include <Adafruit_MPL115A2.h>
 
+Adafruit_MPL115A2 mpl115a2;
 
 
 #define DATAFLASH   0   // check for presence of DataFlash memory on JeeLink
@@ -47,11 +49,14 @@
 //#define solarSensePin 15
 const int battSensePin = A0;
 const int solarSensePin = A1;
+const int chargePumpEnablePin = 6;
 #define solarThreshold 1880
-#define chargerPin 8
+#define faultLED 8
+#define chargerPin 17
 #define chargerOff LOW
 #define chargerOn HIGH
 #define batteryMax 3360
+#define batteryOverCharged 3700
 #define batteryMinForHumidity 3200 // battery should be in good shape for humidity since it costs more juice
 #define winkTime 30
 
@@ -136,7 +141,7 @@ void setupWatchdog(){
   sbi( SMCR,SM1 );     // power down mode
   cbi( SMCR,SM2 );     // power down mode
 
-  config_watchdog(7);
+  config_watchdog(6);
 }
 
 byte del;
@@ -259,6 +264,9 @@ float tmp101 = -442.42;
 //
 
 float getTemperature(){
+#ifdef RECV_MODE 
+  return(-442.00);
+#else
   Wire.requestFrom(tmpAddress,2);
   byte MSB = Wire.receive();
   byte LSB = Wire.receive();
@@ -268,14 +276,15 @@ float getTemperature(){
   float celsius = TemperatureSum*0.0625;
   //float fahrenheit = (1.8 * celsius) + 32;
   tmp101 = (1.8 * celsius) + 32;
-  
+  /*
     Serial.print("TMP101 temp=");
     Serial.print(celsius);
     Serial.print("C, ");
     Serial.print(tmp101);
     Serial.println("F");
-  
+  */
   return(tmp101);
+#endif
 }
 
 void SetResolution(){
@@ -321,6 +330,7 @@ void printAddress(DeviceAddress deviceAddress)
 int batteryMillivolts = 0;
 int solarMillivolts = 0;
 char chargeStat = '-';
+char pumpStat = '_';
 long v = 0;
 int getMv(int apin) {
   v = analogRead(apin);
@@ -406,6 +416,7 @@ void printTemperature(DeviceAddress deviceAddress)
 
   // method 2 - faster
   tempC = sensors.getTempC(deviceAddress);
+  
   Serial.print("Temp C: ");
   Serial.print(tempC);
   Serial.print(" Temp F: ");
@@ -416,12 +427,13 @@ void temploop(void)
 { 
   // call sensors.requestTemperatures() to issue a global temperature 
   // request to all devices on the bus
-  Serial.print("Requesting temperatures...");
+  //Serial.print("Requesting temperatures...");
   sensors.requestTemperatures(); // Send the command to get temperatures
-  Serial.println("DONE");
+  //Serial.println("DONE");
 
   // It responds almost immediately. Let's print out the data
-  printTemperature(insideThermometer); // Use a simple function to print out the data
+  //printTemperature(insideThermometer); // Use a simple function to print out the data
+  tempC = sensors.getTempC(insideThermometer);
 }
 
 
@@ -598,7 +610,7 @@ static void showHelp () {
   rf12_config();
 }
 
-/*
+
 static void handleInput (char c) {
   if ('0' <= c && c <= '9')
     value = 10 * value + c - '0';
@@ -683,34 +695,46 @@ static void handleInput (char c) {
     showHelp();
 }
 
-*/
+
 
 int seq = 0;
 float relativeHumidity = 0.01;
 
 void setup() {
+  pinMode(faultLED, OUTPUT);
+  digitalWrite(faultLED, HIGH);
   Serial.begin(57600);
   Serial.print("\n[RF12demo.7]");
   analogReference(AREFSource);
   setupWatchdog();
+  //Serial.println(" done.");
+
   pinMode(actLed, OUTPUT);
+    activityLed(0);
+    delay(20);
+    activityLed(1);
 
+  //Serial.println(" 1wire... ");
   Wire.begin();        // join i2c bus (address optional for master)
-  SetResolution(); //set TMP101 sensor resolution
   pinMode(rhSensorPower, OUTPUT);
+  digitalWrite(rhSensorPower, HIGH);
+  delay(10);
+  //Serial.println(" SetResolution");
+    activityLed(0);
+    delay(20);
+    activityLed(1);
 
-  Serial.println("tempsetup next");
-  delay(39);
+  SetResolution(); //set TMP101 sensor resolution
+
+  //Serial.println(" tempsetup");
   tempsetup();
-  Serial.println("tempsetup next1.2");
-  delay(39);
   showHelp();
-  Serial.println("tempsetup next2");
-  delay(39);
+    activityLed(0);
+    delay(20);
+    activityLed(1);
+
   if (rf12_config()) {
     config.nodeId = eeprom_read_byte(RF12_EEPROM_ADDR);
-    Serial.println("tempsetup next3");
-    delay(39);        
     config.group = eeprom_read_byte(RF12_EEPROM_ADDR + 1);
   } 
   else {
@@ -718,8 +742,7 @@ void setup() {
     config.group = 0xD4;
     saveConfig();
   }
-  Serial.println("tempsetup next4");
-  delay(39);    
+  quiet = 1;
   // begin populating bits to make it transmit first time thru loop
   cmd = 'a';
   sendLen = RF12_MAXDATA;
@@ -730,11 +753,16 @@ void setup() {
 
   pinMode(battSensePin, INPUT);    
   pinMode(solarSensePin, INPUT);
+  //pinMode(chargePumpEnablePin, INPUT);
   //digitalWrite(battSensePin, LOW); // make sure pullup is turned off so that we dont oscillate the thing
   //digitalWrite(solarSensePin, LOW); // make sure pullup is turned off so that we dont oscillate the thing
+
+  mpl115a2.begin();
+  
   pinMode(chargerPin, OUTPUT);
   digitalWrite(chargerPin, chargerOn);
 
+  digitalWrite(faultLED, LOW);
 
 }
 
@@ -743,9 +771,22 @@ float rhloop() {
 
 
   //digitalWrite(rhSensorPower, HIGH);  // this is now done in main loop so that i2c bus doesnt get hosed 
-
+  activityLed(0);
+  delay(20);
+  activityLed(1);
+  delay(80);
+    
   FreqCount.begin(1000);
-  delay(2500);
+
+  //delay(2500);
+  for (int x=0; x <25; x++) {
+    activityLed(0);
+    delay(20);
+    activityLed(1);
+    delay(80);
+  }
+  
+
   if (FreqCount.available()) {
     unsigned long count = FreqCount.read();
     Serial.print(F(", frequency= "));
@@ -766,6 +807,8 @@ float rhloop() {
 }
 
 
+
+  
 void chkMem() {
   Serial.print(F("chkMem free= "));
   Serial.print(availableMemory());
@@ -785,21 +828,67 @@ int availableMemory() {
 
 
 int foo=60;
+unsigned long currentMillis = 0;
+//unsigned long chargePumpHighPulseWidth = 0;
+//unsigned long chargePumpLowPulseWidth = 2;
+unsigned long cph = 0;
+unsigned long cpl = 1;
+int cpr = -1;
+
+long tempInterval = 60000;   
+
+
 void loop() {
-  //if (Serial.available())
-  //  handleInput(Serial.read());
+  if (Serial.available())
+    handleInput(Serial.read());
 
-  chkMem();
-
+  //chkMem();
+#ifndef RECV_MODE
     rf12_sleep(RF12_WAKEUP);
     activityLed(1);
 
     //pinMode(chargerPin, OUTPUT);
     //digitalWrite(chargerPin, chargerOff);
-    delay(10);
+
+    activityLed(0);
+    delay(20);
     batteryMillivolts = getMv(battSensePin);
-    delay(10);
+    activityLed(1);
+    delay(20);
     solarMillivolts = getMv(solarSensePin);
+
+    activityLed(0);
+    delay(20);
+    
+    cph = pulseIn(chargePumpEnablePin, HIGH);
+    Serial.print("chargeHigh is ");
+    Serial.println(cph);
+
+    activityLed(1);
+    delay(20);
+
+
+    cpl = pulseIn(chargePumpEnablePin, LOW);
+    Serial.print("chargeLow is ");
+    Serial.println(cpl);
+    if ((cph == 0) && (cpl == 0 )){
+      // cant get a pulse on LOW or high... assume it is LOW all the time
+      cpr = 0; 
+      if (digitalRead(chargePumpEnablePin)) {
+        // could not get a pulse width on either, but pump is high, that means its FULL on
+        cpr = 100;
+      }
+    } else {
+      cpr = (int)(float(float(cph)/float(cph+cpl))*100);
+    }
+
+    
+#endif
+    if (batteryMillivolts > batteryOverCharged) {
+      digitalWrite(faultLED, HIGH);
+    } else {
+      digitalWrite(faultLED, LOW);
+    }
     if (batteryMillivolts < batteryMax) {
       if (solarMillivolts > solarThreshold) {
 
@@ -821,14 +910,14 @@ void loop() {
       //pinMode(chargerPin, OUTPUT);
       digitalWrite(chargerPin, chargerOff);
     }
-    Serial.print(chargeStat);
+    //Serial.print(chargeStat);
 
 
 
     if (rf12_recvDone()) {
       byte n = rf12_len;
       if (rf12_crc == 0) {
-        Serial.print("OK");
+        Serial.print("OK ");
       } 
       else {
         if (quiet)
@@ -840,12 +929,15 @@ void loop() {
       if (config.group == 0) {
         Serial.print("G ");
         Serial.print((int) rf12_grp);
-      }
-      Serial.print(' ');
-      Serial.print((int) rf12_hdr);
-      for (byte i = 0; i < n; ++i) {
         Serial.print(' ');
-        Serial.print((int) rf12_data[i]);
+      }
+
+      Serial.print((int) rf12_hdr);
+      Serial.print(' ');      
+      for (byte i = 0; i < n; ++i) {
+        Serial.print(rf12_data[i]);
+        //Serial.print(' ');
+        //Serial.print((int) rf12_data[i]);
       }
       Serial.println();
 
@@ -869,25 +961,50 @@ void loop() {
       cmd = 0;
     }
 
-    seq++;
+
+#ifdef RECV_MODE
+    currentMillis = millis();
+ 
+    if(currentMillis - previousMillis > tempInterval) {
+      // save the last time you blinked the LED 
+      previousMillis = currentMillis;    
+#endif
+    seq++;    
     temploop();
     digitalWrite(rhSensorPower, HIGH); // have to turn power on so i2c doesnt get hosed     
-
     if (batteryMillivolts > batteryMinForHumidity ){ 
       // spin up the sensor and do a humidity reading
       digitalWrite(rhSensorPower, HIGH);  
+#ifndef RECV_MODE
       rhloop();
+#endif
 
     } else {
       //skip power hungry humidity reading
+#ifndef RECV_MODE
       Serial.println(F("battery is too low, skipping humidity check"));
+#endif      
       relativeHumidity = -1;
     }
     
-    Serial.println(F("next is getTemperature"));
-    getTemperature();
-    Serial.println(F("back from getTemperature"));
 
+    getTemperature();
+    
+    float pressureKPA = 0, temperatureF = 0;    
+
+    pressureKPA = mpl115a2.getPressure();  
+    Serial.print("Pressure (kPa): "); Serial.print(pressureKPA, 4); Serial.println(" kPa");
+
+    temperatureF = (1.8 * mpl115a2.getTemperature()) +32;  
+    Serial.print("Temp (*F): "); Serial.print(temperatureF, 1); Serial.println(" *F");
+  
+    int tempFm2 = temperatureF * 100;
+    int pressure2 = pressureKPA;
+    int pressure3 = (long)(pressureKPA * 10000) % 10000;
+    
+
+    
+    
     digitalWrite(rhSensorPower, LOW);      
     
     //byte header = 0 | RF12_HDR_DST | remote_node;
@@ -896,14 +1013,21 @@ void loop() {
     //char payload[] = {'B', 'L', 'I', 'N', 'K', remote_node, remote_pin, set_state};
 
     float tempF = DallasTemperature::toFahrenheit(tempC);
-    Serial.print("tempF is ");
-    Serial.println(tempF);
+    //Serial.print("tempF is ");
+    //Serial.println(tempF);
     int tempF100 = (DallasTemperature::toFahrenheit(tempC)) *100;
     int tmp101100 = (tmp101 * 100);
     int rh100 = (relativeHumidity * 100);
     char payload[64] = "                                                               ";
-    int n=sprintf (payload, "i=%d,t1=%d.%02d,t2=%d.%02d,rH=%d.%02d,b=%dmV,s=%dmV,c=%c ", seq, tempF100/100, tempF100%100, tmp101100/100, tmp101100%100, rh100/100, rh100%100, batteryMillivolts,solarMillivolts,chargeStat);
-
+#ifdef RECV_MODE
+    int n=sprintf (payload, "i=%d,t1=%d.%02d ", seq, tempF100/100, tempF100%100);
+#else
+    int n=sprintf (payload, "%d,%d.%02d,%d.%02d,%d.%02d,%d.%04d,%d%%,%dmV,%dmV,%c,cpo=%d ",
+                              seq, tempF100/100, tempF100%100, tmp101100/100, tmp101100%100,
+                              tempFm2/100, tempFm2%100, pressure2,pressure3,
+                              rh100/100,
+                              batteryMillivolts,solarMillivolts,chargeStat,cpr);
+#endif
     /*        char payload[] = {'t', '=',
      ((tempC100 / 1000)+48),
      ((tempC100 / 100 %10)+48), 
@@ -919,11 +1043,21 @@ void loop() {
      
      };
      */
+#ifdef RECV_MODE
+    Serial.print("Receiver local:");
+#else
     Serial.print("Sending: ");
     Serial.print(header);
+#endif
+
     for (byte i = 0; i < sizeof payload; ++i)
       Serial.print(payload[i]);
-    Serial.println();
+      Serial.println();
+#ifdef RECV_MODE
+    } // done with millis based interval timing
+#endif
+    
+#ifndef RECV_MODE
     rf12_sendStart(header, payload, sizeof payload);
     activityLed(0);
     delay(20);
@@ -937,10 +1071,12 @@ void loop() {
 
     rf12_sleep(RF12_SLEEP);
 
+
     delay(20);
     activityLed(0);
         
-  sleepWithBeacon(26);  //(26 = ~60 seconds between shots)
+  if (seq >=10) sleepWithBeacon(49);  //(26 = ~60 seconds between shots)
+#endif
   //sleepWithBeacon(1);  //(26 = ~60 seconds between shots)
   
 }
