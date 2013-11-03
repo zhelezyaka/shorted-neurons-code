@@ -1,7 +1,11 @@
 //#define LAUNCHER_UNITTYPE_CONTROLLER 1
-#define LAUNCHER_UNITTYPE_RACK r
-#define HARDCODED_UNITTYPE r
-byte unitType = 'r';
+//#define LAUNCHER_UNITTYPE_RACK r
+//#define HARDCODED_UNITTYPE r
+//byte unitType = 'r';
+
+#define LAUNCHER_UNITTYPE_CONTROLLER 1
+#define HARDCODED_UNITTYPE C
+byte unitType = 'C';
 
 #define NUM_CHANNELS 4
 
@@ -65,6 +69,7 @@ byte remote_node = 0x02;
 byte state = STATE_SAFE;
 
 boolean statesChanged = false;
+boolean updatingSelections = false;
 
 
 
@@ -142,19 +147,22 @@ void updateContinuity()
 {
 #ifdef LAUNCHER_UNITTYPE_CONTROLLER
 
-  Serial.println(F("This is a controller... not much point reading ADC when we dont have one"));
+  //Serial.println(F("This is a controller... not much point reading ADC when we dont have one"));
+  1;
 #endif
 
 #ifdef LAUNCHER_UNITTYPE_RACK
 
   for (i = 0; i < NUM_CHANNELS; ++i) {
+    channelsRaw[i] = (uint8_t) (readADC(i) / 16); // we need only 8 bits of resolution, but cannot just chop off the top bits
+#ifdef DEBUG_VIA_SERIAL
     Serial.print("channel ");
     Serial.print(i,DEC);
     Serial.print(" raw=");
     Serial.print(readADC(i),DEC);
     Serial.print(", div16=");
-    channelsRaw[i] = (uint8_t) (readADC(i) / 16); // we need only 8 bits of resolution, but cannot just chop off the top bits
     Serial.println(channelsRaw[i],DEC);
+#endif    
   }
 
   /*
@@ -276,6 +284,7 @@ void mapStatesToDisplay() {
   armState = armState | ((pinstateB & B00000100) << 3);
   armState = armState | ((pinstateB & B00001000) << 1);
 
+#ifdef DEBUG_VIA_SERIAL
   Serial.print("armState1 is now: rack=");
   Serial.print(armedRack);
   Serial.print(", "); 
@@ -285,17 +294,18 @@ void mapStatesToDisplay() {
   Serial.print(armedRack);
   Serial.print(", "); 
   Serial.println(oldArmState, BIN);
-  
+#endif  
   
   if ((armState != oldArmState) && (armState != 0x00)){
   
     uint8_t newArmState = (armState ^ oldArmState);  // i used XOR productively for the first time!
     oldArmState = newArmState;  
     armState = newArmState;  
-    Serial.print("armState2 is now: rack=");
-    Serial.print(armedRack);
-    Serial.print(", "); 
-    Serial.println(armState, BIN);
+
+    //Serial.print("armState2 is now: rack=");
+    //Serial.print(armedRack);
+    //Serial.print(", "); 
+    //Serial.println(armState, BIN);
     
   } else {
     armState = oldArmState;
@@ -336,10 +346,10 @@ void mapStatesToDisplay() {
   //armState = armState | ((pinstateB & B10000000) >> 7);  
 
 
-  Serial.print("armState3 is now: rack=");
-  Serial.print(armedRack);
-  Serial.print(", "); 
-  Serial.println(armState, BIN);
+  //Serial.print("armState3 is now: rack=");
+  //Serial.print(armedRack);
+  //Serial.print(", "); 
+  //Serial.println(armState, BIN);
 
   // rack selector display business... rack A = display A port A bit 0
   displayAstate = displayAstate | ((pinstateB & B01000000) >> 6);
@@ -380,8 +390,8 @@ void mapStatesToDisplay() {
   //displayBstate = displayBstate | ((armState & B00100000) << 2);
   //continuityState chan 3 maps to display B port A bit 6 for red
   displayBstate = displayBstate | ((continuityState & B00100000) << 1);
-  Serial.print("displayB.3 is now: ");
-  Serial.println(displayBstate,BIN);
+  //Serial.print("displayB.3 is now: ");
+  //Serial.println(displayBstate,BIN);
 
   //continuityState chan 4 maps to display B port A bit 1 for green
   displayBstate = displayBstate | ((continuityState & B00010000) >> 3);
@@ -407,7 +417,7 @@ void mapStatesToDisplay() {
   displayBstate = 0x0000;
   continuityState = 0x00;
   
-  Serial.print("this was selectedState: "); Serial.println(selectedState,BIN);
+  //Serial.print("this was selectedState: "); Serial.println(selectedState,BIN);
   
   for (uint8_t i = 0; i < NUM_CHANNELS; ++i) {
     //shorted
@@ -429,20 +439,14 @@ void mapStatesToDisplay() {
     }
 
 
-    Serial.print("this is bit number "); Serial.print(i,DEC);
-    Serial.print("which has select status: ");
-    Serial.println(((selectedState << i )& B10000000) >> 7);
+    //Serial.print("this is bit number "); Serial.print(i,DEC);
+    //Serial.print("which has select status: ");
+    //Serial.println(((selectedState << i )& B10000000) >> 7);
     displayAstate = displayAstate | (((selectedState << i) & B10000000) >> ((i*2) + 1));
 
 
   }
 
-/*
-  displayAstate = selectedState | (B10000000 >> (0*2) + 1);
-  displayAstate = selectedState | (B10000000 >> (1*2) + 1);
-  displayAstate = selectedState | (B10000000 >> (2*2) + 1);
-  displayAstate = selectedState | (B10000000 >> (3*2) + 1);
-*/
   if (shortedToggler) {
     shortedToggler = false;
   } else {
@@ -474,11 +478,14 @@ void updateDisplay() {
   noInterrupts(); 
   Mcp23s17.port(displayAstate);
   if (unitType == 'C') {
-    Serial.println(F("this is a controller so updating partial display on gpioB"));
+    //Serial.println(F("this is a controller so updating partial display on gpioB"));
     Mcp23s17b.port(displayBstate);
   }
-
   interrupts();
+  if( updatingSelections) {
+    delay(300);
+    updatingSelections = false;
+  }
 }
 
 
@@ -488,7 +495,7 @@ void updateDisplay() {
 
 // ______________________________________________________________________________
 void rackListen() {
-  Serial.println("rackListen: listening");
+  //Serial.println("rackListen: listening");
   byte j = 0;
   boolean waitingOnPacket = true;
   while ((j < 1000) && waitingOnPacket) {
@@ -499,16 +506,16 @@ void rackListen() {
       waitingOnPacket = false;
       digitalWrite(txrxPin,LOW);
       //Serial.println("got somethin");
-      if (rf12_len != 8)
-        Serial.println("Error: wrong byte count");
-      else {
+      if (rf12_len != 8) {
+        Serial.println(F("Error: wrong byte count, payload is:"));
+        //  for (byte i = 0; i < rf12_len; ++i)
+        //    Serial.print(rf12_data[i]);
+        //  Serial.println();
+        
+        
+      } else {
+#ifdef DEBUG_VIA_SERIAL
         Serial.print("OK, received: ");
-  //      for (byte i = 0; i < rf12_len; ++i)
-    //      Serial.print(rf12_data[i]);
-      //  Serial.println();
-          //Serial.print(header);
-  //    for (byte i = 0; i < 8; ++i)
-  //      Serial.print(payload[i],HEX);
         Serial.print("rack=");
         Serial.print(rf12_data[0]);
         Serial.print(", rackHex=");
@@ -517,7 +524,6 @@ void rackListen() {
         Serial.print(rf12_data[2]);
         Serial.print(", selected=");
         Serial.print(rf12_data[3], BIN);
-        selectedState = rf12_data[3];
         Serial.print(", firing=");
         Serial.print(rf12_data[4], BIN);
         Serial.print(", b=");
@@ -527,14 +533,15 @@ void rackListen() {
         Serial.print(", s=");
         Serial.print(rf12_data[7]);    
         Serial.println();
-          
-        Serial.print("this was selectedState right before figuring out what came over: "); Serial.println(selectedState,BIN);          
+#endif
+        selectedState = rf12_data[3];          
+        //Serial.print("this was selectedState right before figuring out what came over: "); Serial.println(selectedState,BIN);          
         byte cmd = rf12_data[2];
         //selectedState = 0x00;
         firingState = 0x00;
 
         if (state != STATE_BRICKED && cmd == STATE_SAFE) {
-          Serial.println("controller wants us to go SAFE___________________________");
+          //Serial.println("controller wants us to go SAFE___________________________");
           stopFire();
           state = STATE_SAFE;
           
@@ -542,14 +549,14 @@ void rackListen() {
         }
         
         if (state == STATE_SAFE && cmd == STATE_ARMED) {
-          Serial.println(F("CONTROLLER TURNED US TO ARMED!!!!!"));
+          //Serial.println(F("CONTROLLER TURNED US TO ARMED!!!!!"));
           state = STATE_ARMED;
           selectedState = rf12_data[3];
                   
         }
 
         if (state == STATE_FIRING && cmd == STATE_ARMED) {
-          Serial.println(F("whoa, slow down! stop firing and go to ARMED"));
+          //Serial.println(F("whoa, slow down! stop firing and go to ARMED"));
           state = STATE_ARMED;
           stopFire();
           selectedState = rf12_data[3];                  
@@ -557,14 +564,14 @@ void rackListen() {
 
 
         if (state != STATE_SAFE && cmd == STATE_SAFE) {
-          Serial.println(F("controller wants us to go SAFE___________________________"));
+          //Serial.println(F("controller wants us to go SAFE___________________________"));
           stopFire();
           state = STATE_SAFE;
                   
         }
   
         if (state == STATE_ARMED && cmd == STATE_FIRING) {
-          Serial.println(F("!!!!!!!!!!!!!!!!! controller wants us to FIRE!!!!!!!!!!!!!!!!"));
+          //Serial.println(F("!!!!!!!!!!!!!!!!! controller wants us to FIRE!!!!!!!!!!!!!!!!"));
           state = STATE_FIRING;
           firingState = rf12_data[4];
         }
@@ -576,7 +583,7 @@ void rackListen() {
       digitalWrite(txrxPin,HIGH);
       needToSend = true;
       delay(10);
-      Serial.print("this was selectedState right before rackTransmit: "); Serial.println(selectedState,BIN);
+      //Serial.print("this was selectedState right before rackTransmit: "); Serial.println(selectedState,BIN);
       rackTransmit();
     }
   }
@@ -589,7 +596,9 @@ void rackListen() {
 
 // ______________________________________________________________________________
 void controllerListen() {
+#ifdef DEBUG_VIA_SERIAL
   Serial.println("controllerListen(): listening");
+#endif
 
   boolean waitingOnPacket = true;
   while (waitingOnPacket) {
@@ -597,13 +606,19 @@ void controllerListen() {
     if (softTimeout()) { waitingOnPacket = false; }
     //Serial.println(" listening3");    
     if (rf12_recvDone() && rf12_crc == 0) {
-      digitalWrite(txrxPin,HIGH);
+      digitalWrite(txrxPin,LOW);
       waitingOnPacket = false;
       //Serial.println("got somethin");
-      if (rf12_len != 8)
-        Serial.println("Error: wrong byte count");
-      else {
+      if (rf12_len != 8) {
+        Serial.println(F("Error: wrong byte count, payload is:"));
+          //for (byte i = 0; i < rf12_len; ++i)
+          //  Serial.print(rf12_data[i]);
+          //Serial.println();
+                  
+      } else {
+#ifdef DEBUG_VIA_SERIAL        
         Serial.print("OK, received: ");
+#endif
   //      for (byte i = 0; i < rf12_len; ++i)
     //      Serial.print(rf12_data[i]);
       //  Serial.println();
@@ -614,7 +629,7 @@ void controllerListen() {
   /*  char payload[] = {
         'M','e', state, continuityState, selectedState,  firingState, 'V', 'I'};
   */
-  
+#ifdef DEBUG_VIA_SERIAL  
         Serial.print("rack=");
         Serial.print(rf12_data[0]);
         Serial.print(", rackHex=");
@@ -623,28 +638,23 @@ void controllerListen() {
         Serial.print(rf12_data[2]);
         Serial.print(", continuityState=");
         Serial.print(rf12_data[3], BIN);
-        continuityState=rf12_data[3];
-
         Serial.print(", selected=");
         Serial.print(rf12_data[4], BIN);
-        selectedState=rf12_data[4];
-
         Serial.print(", firing=");
         Serial.print(rf12_data[5], BIN);
         //selectedState=rf12_data[4];
-        
         Serial.print(", t=");
         Serial.print(rf12_data[6]);    
         Serial.print(", s=");
         Serial.print(rf12_data[7]);    
         Serial.println();
-          
+#endif
+        continuityState=rf12_data[3];
+        selectedState=rf12_data[4];
+        
         byte cmd = rf12_data[2];  
-        
-
-        
       }
-      digitalWrite(txrxPin,LOW);
+      digitalWrite(txrxPin,HIGH);
     }
   }
 }
@@ -663,17 +673,14 @@ void rackTransmit() {
 
   boolean waitingOnPacket = true;
 
-  Serial.println("Preparing to rackTransmit()");
+  //Serial.println("Preparing to rackTransmit()");
   while(needToSend && (! checkTimeout())) {
     rf12_recvDone();
 
-    Serial.println("really going to rackTransmit()");
+    //Serial.println("really going to rackTransmit()");
     if (needToSend && rf12_canSend()) {
-        Serial.println("REALLY really going to rackTransmit()");
+        //Serial.println("REALLY really going to rackTransmit()");
         needToSend = 0;
-        
-      
-  
       //sendLed(1);
   
     /*    Status response protocol packet to send from pad to Controller:
@@ -701,13 +708,8 @@ void rackTransmit() {
         'M','e', state, continuityState, selectedState,  firingState, 'V', 'I'};
   
   
-      
-      //Serial.println(remote_node, DEC);
-      //Serial.println(remote_pin, DEC);
+#ifdef DEBUG_VIA_SERIAL
       Serial.print(F("Rack is sending the following STATUS: "));
-      //Serial.print(header);
-  //    for (byte i = 0; i < 8; ++i)
-  //      Serial.print(payload[i],HEX);
       Serial.print("rack=");
       Serial.print(payload[0]);
       Serial.print(", rackHex=");
@@ -726,6 +728,7 @@ void rackTransmit() {
       Serial.print(", s=");
       Serial.print(payload[7]);    
       Serial.println();
+#endif
       rf12_sendStart(header, payload, sizeof payload);
       // rf12_sendStart(0, payload, sizeof payload);
            
@@ -740,7 +743,7 @@ void controllerTransmit() {
 
 
   if (needToSend && rf12_canSend()) {
-    Serial.println("Preparing to send");
+    //Serial.println("Preparing to send");
     needToSend = 0;
 
     //sendLed(1);
@@ -778,13 +781,8 @@ void controllerTransmit() {
       armedRack,armedRack, state, armState, firing, 'b', 't', 's'};
 
 
-    
-    //Serial.println(remote_node, DEC);
-    //Serial.println(remote_pin, DEC);
+#ifdef DEBUG_VIA_SERIAL
     Serial.print("Sending: ");
-    //Serial.print(header);
-//    for (byte i = 0; i < 8; ++i)
-//      Serial.print(payload[i],HEX);
     Serial.print("rack=");
     Serial.print(payload[0]);
     Serial.print(", rackHex=");
@@ -803,15 +801,14 @@ void controllerTransmit() {
     Serial.print(", s=");
     Serial.print(payload[7]);    
     Serial.println();
+#endif
+
     rf12_sendStart(header, payload, sizeof payload);
     // rf12_sendStart(0, payload, sizeof payload);
-    
-    
-
   }
   //resetTimeout();
   resetSoftTimeout();
-  delay(5);
+  delay(1);
   controllerListen();  
 }
 
@@ -828,7 +825,7 @@ void safeRackUnit() {
   selectedState = 0x00;
   armState = 0x00;
   oldArmState = 0x00;
-  analogWrite(buzzerPin, 0); 
+  //analogWrite(buzzerPin, 0); 
   digitalWrite(armOrSafeLED, SAFE_LED_ON);
   stopFire();
   Mcp23s17b.port(0x0000);
@@ -841,27 +838,29 @@ void safeRackUnit() {
 
 void armSystem() {
   digitalWrite(armOrSafeLED, ARM_LED_ON);
-  analogWrite(buzzerPin, BUZZER_ARMED); 
+  //analogWrite(buzzerPin, BUZZER_ARMED); 
   digitalWrite(hvArmPin, HIGH);
-  Serial.println("system is ARMED");
+  //Serial.println("system is ARMED");
 
 }
 
 
 
 void fireFireFire() {
-  analogWrite(buzzerPin, BUZZER_FIRING); 
+  //analogWrite(buzzerPin, BUZZER_FIRING); 
+#ifdef DEBUG_VIA_SERIAL
   Serial.println("system is FIRING");
   Serial.print(F("                              displayB before fire was:"));
   Serial.println(displayBstate, BIN);
-//  displayBstate = displayBstate | ((uint16_t) (firingState << 8));
+#endif
   displayBstate = displayBstate | ((uint16_t) (reverse_bit_order(firingState)));
   displayBstate = displayBstate | ((uint16_t) (reverse_bit_order(firingState) << 8));
-//  displayBstate = displayBstate | ((uint16_t) (firingState << 12));
-//  displayBstate = displayBstate | ((uint16_t) (firingState >> 4));
- 
+
+#ifdef DEBUG_VIA_SERIAL  
   Serial.print(F("                              displayB ReADY to FIRE:"));
   Serial.println(displayBstate, BIN);
+#endif
+
   noInterrupts();
   Mcp23s17b.port(displayBstate);
   //Mcp23s17b.port(0xFFFF);
@@ -903,7 +902,9 @@ void resetSoftTimeout() {
 
 boolean checkTimeout() {
   if ( timeoutAtMillis > millis() ) {
+#ifdef DEBUG_VIA_SERIAL    
     Serial.println("no timeout");
+#endif    
     return(false);
   } 
   else {
@@ -933,11 +934,12 @@ boolean softTimeout() {
 void checkSafetyKey() {
   if (digitalRead(safetySw) == SAFETY_KEY_INSERTED) {
     // read it again
-    delay(10);
+    delay(5);
     if (digitalRead(safetySw) == SAFETY_KEY_INSERTED) {
       if (state == STATE_FIRING) {
         // this is okay, continue allowing fire
-        Serial.println(F("safety key still in, allowing fire to continue"));
+        //Serial.println(F("safety key still in, allowing fire to continue"));
+        1;
       } else {
         state = STATE_ARMED;
          resetTimeout();
@@ -960,9 +962,7 @@ void checkSafetyKey() {
 
 void safeController() {
   digitalWrite(hvArmPin, LOW);
-
-
-  analogWrite(buzzerPin, 0); 
+  //analogWrite(buzzerPin, 0); 
   digitalWrite(armOrSafeLED, SAFE_LED_ON);
   pinstateB = 0x00;
   continuityState=0x00;
@@ -982,9 +982,11 @@ void askRackStatus() {
 
 void armController() {
   digitalWrite(armOrSafeLED, ARM_LED_ON);
-  analogWrite(buzzerPin, BUZZER_ARMED); 
+  //analogWrite(buzzerPin, BUZZER_ARMED); 
   digitalWrite(hvArmPin, HIGH);
+#ifdef DEBUG_VIA_SERIAL  
   Serial.println("controller is ARMED");
+#endif
 
 }
 
@@ -997,7 +999,7 @@ void updateChannelSelections() {
   interrupts();
   //Serial.println(pinstateB, BIN);
   if (pinstateB != oldPinstateB ) {
-    delay(20);
+    delay(50);
     noInterrupts();
     pinstateB = Mcp23s17b.port() >> 8;
     interrupts();
@@ -1009,6 +1011,7 @@ void updateChannelSelections() {
       oldPinstateB = pinstateB;
       //mapStatesToDisplay();
       statesChanged = true;
+      updatingSelections = true;
     }
   }
 
@@ -1019,7 +1022,7 @@ void updateChannelSelections() {
 void checkFireSwitch() {
   if (digitalRead(fireSw) == FIRE_SWITCH_DEPRESSED) {
     //wait and check again
-    delay(20);
+    delay(5);
     if (digitalRead(fireSw) == FIRE_SWITCH_DEPRESSED) {
       if (state == STATE_ARMED) {
         state = STATE_FIRING;
@@ -1031,8 +1034,8 @@ void checkFireSwitch() {
         }
       }
       statesChanged = true;
-      analogWrite(buzzerPin, BUZZER_FIRING); 
-      Serial.println("controller is FIRING");
+      //analogWrite(buzzerPin, BUZZER_FIRING); 
+      //Serial.println("controller is FIRING");
     } else {
       //state = STATE_ARMED;
       statesChanged = true;
@@ -1043,7 +1046,7 @@ void checkFireSwitch() {
       // fire button no longer depressed
       state = STATE_ARMED;
       statesChanged = true;
-      Serial.println(F("checkFireSwitch changed state to ARMED"));
+      //Serial.println(F("checkFireSwitch changed state to ARMED"));
     }
   }
 }
@@ -1097,14 +1100,14 @@ void rackLoop() {
 
   switch(state) {
   case STATE_SAFE:
-    Serial.print(F("rackLoop STATE_SAFE: going safe..."));
+    //Serial.print(F("rackLoop STATE_SAFE: going safe..."));
     safeRackUnit();
     //___________________________________________FIXME
     statesChanged = true;
     break;
 
   case STATE_ARMED:
-    Serial.print(F("0rackLoop STATE_ARMED: going ARMED..."));
+    //Serial.print(F("0rackLoop STATE_ARMED: going ARMED..."));
     if (checkTimeout()) break;
     armSystem();
     updateContinuity();
@@ -1113,7 +1116,7 @@ void rackLoop() {
     break;
 
   case STATE_FIRING:
-    Serial.println(F("rackLoop STATE_FIRING: unit is FIRING!!!!!"));
+    //Serial.println(F("rackLoop STATE_FIRING: unit is FIRING!!!!!"));
     if (checkTimeout()) break;
     updateContinuity();
     fireFireFire();
@@ -1143,13 +1146,13 @@ void controllerLoop() {
 
   switch(state) {
   case STATE_SAFE:
-    Serial.print(F("controllerLoop STATE_SAFE: going safe..."));
+    //Serial.print(F("controllerLoop STATE_SAFE: going safe..."));
     safeController();
     askRackStatus();
     break;
 
   case STATE_ARMED:
-    Serial.print(F("controllerLoop STATE_ARMED: going ARMED..."));
+    //Serial.print(F("controllerLoop STATE_ARMED: going ARMED..."));
     if (checkTimeout()) break;
     armController();
     updateChannelSelections();
@@ -1160,7 +1163,7 @@ void controllerLoop() {
     break;
 
   case STATE_FIRING:
-    Serial.println(F("controllerLoop STATE_FIRING: unit is FIRING!!!!!"));
+    //Serial.println(F("controllerLoop STATE_FIRING: unit is FIRING!!!!!"));
     if (checkTimeout()) break;
     checkFireSwitch();
     askRackStatus();
@@ -1192,7 +1195,7 @@ void setup () {
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
     readings[thisReading] = 0;     
 
-  Serial.println(F("control_leds_lotta_SPI_v4200"));
+  Serial.println(F("combinedLauncher 20130203"));
   Serial.print(F("resetting GPIO and the radio... "));    
   pinMode(gpioReset, OUTPUT);
   digitalWrite(gpioReset, LOW);
@@ -1315,7 +1318,6 @@ void loop () {
     updateDisplay();
   }
 
-  //Serial.println(ops);
 }
 
 
