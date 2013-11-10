@@ -18,7 +18,7 @@
  */
 
 
-#include "WProgram.h"
+#include "Arduino.h"
 #include "RotaryEncoder.h"
 /*
 RotaryEncoder::RotaryEncoder(uint8_t h1pin, uint8_t h2pin, uint8_t h3pin) {

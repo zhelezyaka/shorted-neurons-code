@@ -1,7 +1,7 @@
 #ifndef RotaryEncoder_h
 #define RotaryEncoder_h
 
-#include "WProgram.h"
+#include "Arduino.h"
 
 class RotaryEncoder
 {
