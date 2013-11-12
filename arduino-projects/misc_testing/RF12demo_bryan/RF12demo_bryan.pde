@@ -678,6 +678,8 @@ void setup() {
     quiet=1;
 }
 
+long okPacketsRecvd = 0;
+
 void loop() {
     if (Serial.available())
         handleInput(Serial.read());
@@ -685,20 +687,25 @@ void loop() {
     if (rf12_recvDone()) {
         byte n = rf12_len;
         if (rf12_crc == 0) {
-            Serial.print("OK");
+            okPacketsRecvd++;
+            Serial.print("recvOK=");
+            Serial.print(okPacketsRecvd);
+            Serial.print(',');
         } else {
             if (quiet)
                 return;
-            Serial.print(" ?");
+            Serial.print("? ");
             if (n > 20) // print at most 20 bytes if crc is wrong
                 n = 20;
         }
         if (config.group == 0) {
-            Serial.print("G ");
+            Serial.print("g");
             Serial.print((int) rf12_grp);
+            Serial.print(',');
         }
-        Serial.print(' ');
+        Serial.print("src=");
         Serial.print((int) rf12_hdr);
+        Serial.print(',');
         for (byte i = 0; i < n; ++i) {
             if ((rf12_data[i] > 31) && (rf12_data[i] < 127 )) {
               Serial.print(rf12_data[i]);
