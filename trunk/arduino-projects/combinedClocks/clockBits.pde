@@ -4,6 +4,8 @@
 #define DS3232_I2C_ADDRESS 0x68
 #define DEBUG_RTC false
 
+RTC_DS1307 RTC;
+
 // Convert normal decimal numbers to binary coded decimal
 byte decToBcd(byte val) {
   return ( (val/10*16) + (val%10) );
@@ -89,6 +91,8 @@ void rtcSetup() {
   byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
   
   Wire.begin();
+  RTC.begin();
+
   
   //DS3232 RTC setup bits.
   // Change these values to what you want to set your clock to.
@@ -270,8 +274,11 @@ void rtcGrab() {
     Serial.print(minute, DEC);
     Serial.print(":");
     Serial.println(second, DEC);
-
-    
+    DateTime now = RTC.now();
+    Serial.print("unix time is ");
+    Serial.println(now.unixtime());
+    Serial.print("unix time bin is ");
+    Serial.println(now.unixtime(), BIN);    
 
 }
 

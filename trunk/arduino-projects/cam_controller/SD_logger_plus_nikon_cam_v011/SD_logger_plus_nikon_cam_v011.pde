@@ -206,7 +206,7 @@ ISR(WDT_vect) {
 #define powerDownHoldTime 3000
 #define focusSwHoldTime 2000
 #define shutterSwHoldTime 2000
-#define waitAfterExposure 3000
+#define waitAfterExposure 8000
 #define defaultPicPeriod 15 // minutes divisible by
 #define minPicPeriod 15 // minutes divisible by 
 #define maxPicPeriod 60 // minutes divisible by
