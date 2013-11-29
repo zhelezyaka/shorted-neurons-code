@@ -727,11 +727,13 @@ void updateLEDs() {
 #endif
 
 #ifdef TARGET_35BITCLOCK
-    for(i=0;i<8;i++) {
-    	LEDs.setRow(flowerLEDs,i,frontLEDs[i]);
+    DateTime now = RTC.now();
+    for(i=0;i<5;i++) {
+    	//LEDs.setRow(flowerLEDs,i,frontLEDs[i]);
+        LEDs.setRow(flowerLEDs,i,(byte)(now.unixtime() >> (i * 8)));
     	//LEDs.setRow(rearLEDs,i,backLEDs[i]);
     }
-    
+   
     // special cases for first digit blanking.  not elegant
     // first is "home" time
     if (hrs3 < 10) {
@@ -749,16 +751,35 @@ void updateLEDs() {
     
     //now all the rest
     LEDs.setDigit(clockDigits, 1, hrs4, false);
-    LEDs.setDigit(debugDigits, 1, hrs2, false);
     LEDs.setDigit(clockDigits, 2, mins1, false);
     LEDs.setDigit(clockDigits, 3, mins2, false);
     //decimal
     //LEDs.setChar(debugDigits, 2, colon1, true);
-    LEDs.setRow(debugDigits, 2, colon1);
-    LEDs.setDigit(debugDigits, 3, mins1, false);
-    LEDs.setDigit(debugDigits, 4, mins2, false);
-    LEDs.setDigit(clockDigits, 4, secs1, false);
-    LEDs.setDigit(clockDigits, 5, secs2, false);
+    if(colorShutoff) {
+      LEDs.setChar(debugDigits, 0, ' ', false);      
+      LEDs.setChar(debugDigits, 1, ' ', false);
+      LEDs.setChar(debugDigits, 2, ' ', false);
+      LEDs.setChar(debugDigits, 3, ' ', false);
+      LEDs.setChar(debugDigits, 4, ' ', false);      
+      LEDs.setChar(clockDigits, 4, ' ', false);
+      LEDs.setChar(clockDigits, 5, ' ', false);
+      //colons
+      LEDs.setRow(flowerLEDs,5,B00010010);
+      LEDs.setRow(flowerLEDs,6,B00000000);
+
+
+    } else {
+      LEDs.setDigit(debugDigits, 1, hrs2, false);
+      LEDs.setRow(debugDigits, 2, colon1);
+      LEDs.setDigit(debugDigits, 3, mins1, false);
+      LEDs.setDigit(debugDigits, 4, mins2, false);
+      LEDs.setDigit(clockDigits, 4, secs1, false);
+      LEDs.setDigit(clockDigits, 5, secs2, false);
+      //colons
+      LEDs.setRow(flowerLEDs,5,B00010010);
+      LEDs.setRow(flowerLEDs,6,B00001010);
+
+    }
 
 #endif
 
@@ -813,7 +834,10 @@ void setPrettyColors() {
 */
 	j = random(255);
 	for(i=0;i<8;i++) {
+#ifdef TARGET_FLOWERCLOCK
         	frontLEDs[i] = random(255);
+#endif
+
         	//backLEDs[i] = j;
 	}
 
@@ -867,9 +891,10 @@ void updateBrightness() {
 	  colorShutoff=true;
 #ifdef TARGET_FLOWERCLOCK
           LEDs.shutdown(rearLEDs,true);
+          LEDs.shutdown(flowerLEDs,true);
 #endif
           LEDs.setIntensity(clockDigits,0);
-          LEDs.shutdown(flowerLEDs,true);
+          LEDs.setIntensity(flowerLEDs,0);
 	}
       } else {
         
