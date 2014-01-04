@@ -1,30 +1,26 @@
+#define LAUNCHER_UNITTYPE_RACK r
+#define HARDCODED_UNITTYPE r
+byte unitType = 'r';
+#define DEBUG_VIA_SERIAL 1
 //#define LAUNCHER_UNITTYPE_CONTROLLER 1
-//#define LAUNCHER_UNITTYPE_RACK r
-//#define HARDCODED_UNITTYPE r
-//byte unitType = 'r';
+//#define HARDCODED_UNITTYPE C
+//byte unitType = 'C';
 
-#define LAUNCHER_UNITTYPE_CONTROLLER 1
-#define HARDCODED_UNITTYPE C
-byte unitType = 'C';
+#define RADIO_TYPE_RFM12B 1
+//#define RADIO_TYPE_RFM22B 1
+//#define RADIO_TYPE_RFM69HW 1
 
 #define NUM_CHANNELS 4
 
 
-#define DATAOUT 11//MOSI
-#define DATAIN 12//MISO - not used, but part of builtin SPI
-#define SPICLOCK 13//sck
+#define DATAOUT 11  //MOSI
+#define DATAIN 12   //MISO - not used, but part of builtin SPI
+#define SPICLOCK 13 //sck
 
 #include <SPI.h>
 #define ADCSelectPin 17
 
 #include <Mcp23s17.h>
-#define MCP23S17_SLAVE_SELECT_PIN 3 //arduino   <->   SPI Slave Select           -> CS  (Pin 11 on MCP23S17 DIP)
-
-// SINGLE DEVICE
-// Instantiate a single Mcp23s17 object
-//MCP23S17 Mcp23s17 = MCP23S17( MCP23S17_SLAVE_SELECT_PIN );
-MCP23S17 Mcp23s17 = MCP23S17(MCP23S17_SLAVE_SELECT_PIN, 0x7);
-MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
 
 
 #include <Streaming.h>
@@ -33,11 +29,26 @@ MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
 // Flash has to come after Streaming because of conflicting definition of endl
 #include <Flash.h>
 
-
-
-//#include <RF12.h>
-//#include <Ports.h>
+#ifdef RADIO_TYPE_RFM12B
 #include <JeeLib.h>
+#endif
+
+#ifdef RADIO_TYPE_RFM22B
+#include <JeeLib.h>
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+#include <RFM69.h>
+#endif
+
+#define MCP23S17_SLAVE_SELECT_PIN 3 //arduino   <->   SPI Slave Select           -> CS  (Pin 11 on MCP23S17 DIP)
+// SINGLE DEVICE
+// Instantiate a single Mcp23s17 object
+//MCP23S17 Mcp23s17 = MCP23S17( MCP23S17_SLAVE_SELECT_PIN );
+MCP23S17 Mcp23s17 = MCP23S17(MCP23S17_SLAVE_SELECT_PIN, 0x7);
+MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
+
+
 #define safetySw 16
 #define armOrSafeLED 8
 #define buzzerPin 9
@@ -484,7 +495,7 @@ void updateDisplay() {
   }
   interrupts();
   if( updatingSelections) {
-    delay(300);
+    delay(30);
     updatingSelections = false;
   }
 }
@@ -496,7 +507,9 @@ void updateDisplay() {
 
 // ______________________________________________________________________________
 void rackListen() {
-  //Serial.println("rackListen: listening");
+#ifdef DEBUG_VIA_SERIAL
+  Serial.println("rackListen: listening");
+#endif
   byte j = 0;
   boolean waitingOnPacket = true;
   while ((j < 1000) && waitingOnPacket) {
@@ -508,11 +521,12 @@ void rackListen() {
       digitalWrite(txrxPin,LOW);
       //Serial.println("got somethin");
       if (rf12_len != 8) {
+#ifdef DEBUG_VIA_SERIAL
         Serial.println(F("Error: wrong byte count, payload is:"));
-        //  for (byte i = 0; i < rf12_len; ++i)
-        //    Serial.print(rf12_data[i]);
-        //  Serial.println();
-        
+          for (byte i = 0; i < rf12_len; ++i)
+            Serial.print((char)rf12_data[i]);
+          Serial.println();
+#endif        
         
       } else {
 #ifdef DEBUG_VIA_SERIAL
@@ -1000,7 +1014,7 @@ void updateChannelSelections() {
   interrupts();
   //Serial.println(pinstateB, BIN);
   if (pinstateB != oldPinstateB ) {
-    delay(50);
+    delay(20);
     noInterrupts();
     pinstateB = Mcp23s17b.port() >> 8;
     interrupts();
@@ -1015,15 +1029,13 @@ void updateChannelSelections() {
       updatingSelections = true;
     }
   }
-
-
 }
 
 
 void checkFireSwitch() {
   if (digitalRead(fireSw) == FIRE_SWITCH_DEPRESSED) {
     //wait and check again
-    delay(5);
+    delay(10);
     if (digitalRead(fireSw) == FIRE_SWITCH_DEPRESSED) {
       if (state == STATE_ARMED) {
         state = STATE_FIRING;
@@ -1101,14 +1113,14 @@ void rackLoop() {
 
   switch(state) {
   case STATE_SAFE:
-    //Serial.print(F("rackLoop STATE_SAFE: going safe..."));
+    Serial.print(F("rackLoop STATE_SAFE: going safe..."));
     safeRackUnit();
     //___________________________________________FIXME
     statesChanged = true;
     break;
 
   case STATE_ARMED:
-    //Serial.print(F("0rackLoop STATE_ARMED: going ARMED..."));
+    Serial.print(F("0rackLoop STATE_ARMED: going ARMED..."));
     if (checkTimeout()) break;
     armSystem();
     updateContinuity();
@@ -1117,7 +1129,7 @@ void rackLoop() {
     break;
 
   case STATE_FIRING:
-    //Serial.println(F("rackLoop STATE_FIRING: unit is FIRING!!!!!"));
+    Serial.println(F("rackLoop STATE_FIRING: unit is FIRING!!!!!"));
     if (checkTimeout()) break;
     updateContinuity();
     fireFireFire();
@@ -1215,7 +1227,7 @@ void setup () {
 
   if (unitType == 'C') rf12_initialize(21, RF12_433MHZ, 212);
   if (unitType == 'r') rf12_initialize(2, RF12_433MHZ, 212);
-
+  //rf12_config(RF12_DATA_RATE_4);
 
   pinMode(ADCSelectPin,OUTPUT);
   digitalWrite(ADCSelectPin,HIGH);
