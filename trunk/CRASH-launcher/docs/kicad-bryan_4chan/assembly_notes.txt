@@ -16,8 +16,6 @@
 
 14. TVS diodes seem wrong... i certainly dont have correct parts here, how about 1N6373 or 1N5908?
 
-1
-
 15. silkscreen for U1 (lp2950-30) is apparently backward... pin 1 is INPUT!
 
 16. 12 divider values are wrong.  used R1= 32750ohms (33k), R2=5090ohms (5.1k)
