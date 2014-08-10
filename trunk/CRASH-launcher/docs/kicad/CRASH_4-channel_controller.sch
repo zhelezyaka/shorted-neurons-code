@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri 23 Mar 2012 11:21:48 PM MDT
+EESchema Schematic File Version 2  date Sat 24 Sep 2011 08:12:06 PM MDT
 LIBS:bryan_custom
 LIBS:power
 LIBS:device
@@ -31,14 +31,13 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:rfm12
-LIBS:CRASH_4-channel-cache
 EELAYER 25  0
 EELAYER END
 $Descr User 11000 8500
 encoding utf-8
 Sheet 5 5
 Title ""
-Date "24 mar 2012"
+Date "14 sep 2011"
 Rev ""
 Comp ""
 Comment1 ""
