@@ -6,12 +6,30 @@ byte unitType = 'r';
 //#define HARDCODED_UNITTYPE C
 //byte unitType = 'C';
 
-#define RADIO_TYPE_RFM12B 1
+#ifdef LAUNCHER_UNITTYPE_RACK
+#define NODEID        1    //unique for each node on same network
+#define NETWORKID     100  //the same on all nodes that talk to each other
+#define RACKID        1
+#define CONTROLLERID  2
+#define CONTROLLER_RADIO_ADDRESS 0x02 //21
+#endif
+
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
+#define NODEID        2    //unique for each node on same network
+#define NETWORKID     100  //the same on all nodes that talk to each other
+#define RACKID        1
+#define CONTROLLERID  2
+#define CONTROLLER_RADIO_ADDRESS 0x02 //21
+#endif
+
+
+//#define RADIO_TYPE_RFM12B 1
 //#define RADIO_TYPE_RFM22B 1
-//#define RADIO_TYPE_RFM69HW 1
+#define RADIO_TYPE_RFM69HW 1
 
 #define NUM_CHANNELS 4
 
+#define SERIAL_BAUD_RATE 115200
 
 #define DATAOUT 11  //MOSI
 #define DATAIN 12   //MISO - not used, but part of builtin SPI
@@ -31,15 +49,32 @@ byte unitType = 'r';
 
 #ifdef RADIO_TYPE_RFM12B
 #include <JeeLib.h>
+volatile uint8_t * recvdPacket;
 #endif
 
 #ifdef RADIO_TYPE_RFM22B
 #include <JeeLib.h>
+volatile uint8_t * recvdPacket;
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
+#include <JeeLib.h>
 #include <RFM69.h>
+//Match frequency to the hardware version of the radio (uncomment one):
+#define FREQUENCY   RF69_433MHZ
+//#define FREQUENCY   RF69_868MHZ
+//#define FREQUENCY     RF69_915MHZ
+#define ENCRYPTKEY    "sampleEncryptKey" //exactly the same 16 characters/bytes on all nodes!
+#define IS_RFM69HW    //uncomment only for RFM69HW! Leave out if you have RFM69W!
+#define ACK_TIME      30 // max # of ms to wait for an ack
+
+RFM69 radio;
+
+volatile uint8_t * recvdPacket;
 #endif
+
+
+
 
 #define MCP23S17_SLAVE_SELECT_PIN 3 //arduino   <->   SPI Slave Select           -> CS  (Pin 11 on MCP23S17 DIP)
 // SINGLE DEVICE
@@ -64,8 +99,6 @@ byte needToSend, remote_pin, set_state;
 int last_state = HIGH;
 int low_count = 10;
 
-byte remote_node = 0x02;
-#define CONTROLLER_RADIO_ADDRESS 0x15 //21
 
 #define ARM_LED_ON LOW
 #define SAFE_LED_ON HIGH
@@ -515,43 +548,75 @@ void rackListen() {
   while ((j < 1000) && waitingOnPacket) {
 
     if (softTimeout()) waitingOnPacket = false;
-    
+#ifdef RADIO_TYPE_RFM12B    
     if (rf12_recvDone() && rf12_crc == 0) {
       waitingOnPacket = false;
       digitalWrite(txrxPin,LOW);
-      //Serial.println("got somethin");
+      Serial.println("got somethin");
+      //recvdPacket = (volatile uint8_t *)rf12_data;
+      recvdPacket = rf12_data;
+
       if (rf12_len != 8) {
+
 #ifdef DEBUG_VIA_SERIAL
         Serial.println(F("Error: wrong byte count, payload is:"));
-          for (byte i = 0; i < rf12_len; ++i)
-            Serial.print((char)rf12_data[i]);
-          Serial.println();
+        for (byte i = 0; i < rf12_len; ++i)
+          Serial.print((char)recvdPacket[i]);
+        Serial.println();
 #endif        
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW    
+    if (radio.receiveDone() && rf12_crc == 0) {
+      waitingOnPacket = false;
+      digitalWrite(txrxPin,LOW);
+      Serial.println("got somethin");
+      //recvdPacket = (volatile uint8_t *)rf12_data;
+      recvdPacket = radio.DATA;
+
+      if (radio.DATALEN != 8) {
+
+#ifdef DEBUG_VIA_SERIAL
+        Serial.println(F("Error: wrong byte count, payload is:"));
+        for (byte i = 0; i < radio.DATALEN; ++i)
+          Serial.print((char)recvdPacket[i]);
+        Serial.println();
+#endif
+
+      if (radio.ACK_REQUESTED)
+      {
+        radio.sendACK();
+        Serial.print(" - ACK sent");
+        delay(10);
+      }
+
+#endif
+
         
       } else {
 #ifdef DEBUG_VIA_SERIAL
         Serial.print("OK, received: ");
         Serial.print("rack=");
-        Serial.print(rf12_data[0]);
+        Serial.print(recvdPacket[0]);
         Serial.print(", rackHex=");
-        Serial.print(rf12_data[1], HEX);
+        Serial.print(recvdPacket[1], HEX);
         Serial.print(", command=");
-        Serial.print(rf12_data[2]);
+        Serial.print(recvdPacket[2]);
         Serial.print(", selected=");
-        Serial.print(rf12_data[3], BIN);
+        Serial.print(recvdPacket[3], BIN);
         Serial.print(", firing=");
-        Serial.print(rf12_data[4], BIN);
+        Serial.print(recvdPacket[4], BIN);
         Serial.print(", b=");
-        Serial.print(rf12_data[5]);
+        Serial.print(recvdPacket[5]);
         Serial.print(", t=");
-        Serial.print(rf12_data[6]);    
+        Serial.print(recvdPacket[6]);    
         Serial.print(", s=");
-        Serial.print(rf12_data[7]);    
+        Serial.print(recvdPacket[7]);    
         Serial.println();
 #endif
-        selectedState = rf12_data[3];          
+        selectedState = recvdPacket[3];          
         //Serial.print("this was selectedState right before figuring out what came over: "); Serial.println(selectedState,BIN);          
-        byte cmd = rf12_data[2];
+        byte cmd = recvdPacket[2];
         //selectedState = 0x00;
         firingState = 0x00;
 
@@ -566,7 +631,7 @@ void rackListen() {
         if (state == STATE_SAFE && cmd == STATE_ARMED) {
           //Serial.println(F("CONTROLLER TURNED US TO ARMED!!!!!"));
           state = STATE_ARMED;
-          selectedState = rf12_data[3];
+          selectedState = recvdPacket[3];
                   
         }
 
@@ -574,7 +639,7 @@ void rackListen() {
           //Serial.println(F("whoa, slow down! stop firing and go to ARMED"));
           state = STATE_ARMED;
           stopFire();
-          selectedState = rf12_data[3];                  
+          selectedState = recvdPacket[3];                  
         }
 
 
@@ -588,7 +653,7 @@ void rackListen() {
         if (state == STATE_ARMED && cmd == STATE_FIRING) {
           //Serial.println(F("!!!!!!!!!!!!!!!!! controller wants us to FIRE!!!!!!!!!!!!!!!!"));
           state = STATE_FIRING;
-          firingState = rf12_data[4];
+          firingState = recvdPacket[4];
         }
   
         if (cmd == STATE_FIRING || cmd == STATE_ARMED || cmd == STATE_SAFE) {
@@ -619,23 +684,56 @@ void controllerListen() {
   while (waitingOnPacket) {
     //Serial.print("listening2");    
     if (softTimeout()) { waitingOnPacket = false; }
+#ifdef RADIO_TYPE_RFM12B    
     //Serial.println(" listening3");    
     if (rf12_recvDone() && rf12_crc == 0) {
       digitalWrite(txrxPin,LOW);
       waitingOnPacket = false;
-      //Serial.println("got somethin");
+      recvdPacket = rf12_data;
+
+      Serial.println("got somethin");
       if (rf12_len != 8) {
+#ifdef DEBUG_VIA_SERIAL
         Serial.println(F("Error: wrong byte count, payload is:"));
-          //for (byte i = 0; i < rf12_len; ++i)
-          //  Serial.print(rf12_data[i]);
-          //Serial.println();
-                  
+          for (byte i = 0; i < rf12_len; ++i)
+            Serial.print(recvdPacket[i]);
+          Serial.println();
+#endif
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+    if (radio.receiveDone()) {
+      waitingOnPacket = false;
+      digitalWrite(txrxPin,LOW);
+      Serial.println("got somethin");
+      //recvdPacket = (volatile uint8_t *)rf12_data;
+      recvdPacket = radio.DATA;
+
+      if (radio.ACK_REQUESTED)
+      {
+        radio.sendACK();
+        Serial.print(" - ACK sent");
+        //delay(10);
+      }
+
+      if (radio.DATALEN != 8) {
+
+#ifdef DEBUG_VIA_SERIAL
+        Serial.println(F("Error: wrong byte count, payload is:"));
+        for (byte i = 0; i < radio.DATALEN; ++i)
+          Serial.print((char)recvdPacket[i]);
+        Serial.println();
+#endif
+#endif
+
+
+
       } else {
-#ifdef DEBUG_VIA_SERIAL        
+#ifdef DEBUG_VIA_SERIAL
         Serial.print("OK, received: ");
 #endif
   //      for (byte i = 0; i < rf12_len; ++i)
-    //      Serial.print(rf12_data[i]);
+    //      Serial.print(recvdPacket[i]);
       //  Serial.println();
           //Serial.print(header);
   //    for (byte i = 0; i < 8; ++i)
@@ -646,28 +744,28 @@ void controllerListen() {
   */
 #ifdef DEBUG_VIA_SERIAL  
         Serial.print("rack=");
-        Serial.print(rf12_data[0]);
+        Serial.print(recvdPacket[0]);
         Serial.print(", rackHex=");
-        Serial.print(rf12_data[1], HEX);
+        Serial.print(recvdPacket[1], HEX);
         Serial.print(", state=");
-        Serial.print(rf12_data[2]);
+        Serial.print(recvdPacket[2]);
         Serial.print(", continuityState=");
-        Serial.print(rf12_data[3], BIN);
+        Serial.print(recvdPacket[3], BIN);
         Serial.print(", selected=");
-        Serial.print(rf12_data[4], BIN);
+        Serial.print(recvdPacket[4], BIN);
         Serial.print(", firing=");
-        Serial.print(rf12_data[5], BIN);
-        //selectedState=rf12_data[4];
+        Serial.print(recvdPacket[5], BIN);
+        //selectedState=recvdPacket[4];
         Serial.print(", t=");
-        Serial.print(rf12_data[6]);    
+        Serial.print(recvdPacket[6]);    
         Serial.print(", s=");
-        Serial.print(rf12_data[7]);    
+        Serial.print(recvdPacket[7]);    
         Serial.println();
 #endif
-        continuityState=rf12_data[3];
-        selectedState=rf12_data[4];
+        continuityState=recvdPacket[3];
+        selectedState=recvdPacket[4];
         
-        byte cmd = rf12_data[2];  
+        byte cmd = recvdPacket[2];  
       }
       digitalWrite(txrxPin,HIGH);
     }
@@ -693,7 +791,14 @@ void rackTransmit() {
     rf12_recvDone();
 
     //Serial.println("really going to rackTransmit()");
+#ifdef RADIO_TYPE_RFM12B
     if (needToSend && rf12_canSend()) {
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+    if (needToSend ) {
+#endif
+
         //Serial.println("REALLY really going to rackTransmit()");
         needToSend = 0;
       //sendLed(1);
@@ -714,7 +819,6 @@ void rackTransmit() {
   
     */
     
-      byte header = 0 | RF12_HDR_DST | CONTROLLER_RADIO_ADDRESS;
       uint8_t firing = 0;
       if ( state == STATE_FIRING ) 
         firing = armState;
@@ -744,21 +848,37 @@ void rackTransmit() {
       Serial.print(payload[7]);    
       Serial.println();
 #endif
-      rf12_sendStart(header, payload, sizeof payload);
-      // rf12_sendStart(0, payload, sizeof payload);
+
+#ifdef RADIO_TYPE_RFM12B
+    byte header = 0 | RF12_HDR_DST | RACKID;
+    rf12_sendStart(header, payload, sizeof payload);
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+    radio.sendWithRetry(RACKID, payload, sizeof payload);
+#endif
+
+
            
     }
   }
 }
 
 // ______________________________________________________________________________
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void controllerTransmit() {
   if (sendTimer.poll(700))
       needToSend = 1;
-
-
+  Serial.println("in controllerTransmit()");
+#ifdef RADIO_TYPE_RFM12B
   if (needToSend && rf12_canSend()) {
-    //Serial.println("Preparing to send");
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+  if (needToSend ) {
+#endif
+
+    Serial.println("Preparing to send");
     needToSend = 0;
 
     //sendLed(1);
@@ -787,7 +907,6 @@ void controllerTransmit() {
         Total:8 bytes
   */
   
-    byte header = 0 | RF12_HDR_DST | remote_node;
     uint8_t firing = 0;
     if ( state == STATE_FIRING ) 
       firing = armState;
@@ -818,16 +937,27 @@ void controllerTransmit() {
     Serial.println();
 #endif
 
+#ifdef RADIO_TYPE_RFM12B
+    byte header = 0 | RF12_HDR_DST | RACKID;
     rf12_sendStart(header, payload, sizeof payload);
-    // rf12_sendStart(0, payload, sizeof payload);
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+    radio.sendWithRetry(RACKID, payload, sizeof payload);
+#endif
+
+
   }
   //resetTimeout();
   resetSoftTimeout();
   delay(1);
   controllerListen();  
 }
+#endif
 
 
+
+#ifdef LAUNCHER_UNITTYPE_RACK
 // ______________________________________________________________________________
 void safeRackUnit() {
 
@@ -847,6 +977,9 @@ void safeRackUnit() {
   Serial.println("system is now safe");
 
 }
+#endif
+
+
 
 #define BUZZER_ARMED 100
 #define BUZZER_FIRING 200
@@ -927,7 +1060,9 @@ boolean checkTimeout() {
     Serial.print("TIMEOUT!!!!!!! timeoutsTripped=");
     Serial.println(timeoutsTripped);
     state = STATE_SAFE;
+#ifdef LAUNCHER_UNITTYPE_RACK    
     safeRackUnit();    
+#endif    
     statesChanged = true;
     delay(50);
     return(true);
@@ -945,7 +1080,7 @@ boolean softTimeout() {
 }
 
 
-
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void checkSafetyKey() {
   if (digitalRead(safetySw) == SAFETY_KEY_INSERTED) {
     // read it again
@@ -973,8 +1108,10 @@ void checkSafetyKey() {
   }
 
 }
+#endif
 
 
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void safeController() {
   digitalWrite(hvArmPin, LOW);
   //analogWrite(buzzerPin, 0); 
@@ -985,14 +1122,16 @@ void safeController() {
   armState = 0x00;
   oldArmState = 0x00;
   Serial.println("system is now safe");
-
-  delay(100);
+  delay(10);
 }
+#endif
 
-
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void askRackStatus() {
 
 }
+#endif
+
 
 
 void armController() {
@@ -1002,10 +1141,12 @@ void armController() {
 #ifdef DEBUG_VIA_SERIAL  
   Serial.println("controller is ARMED");
 #endif
-
 }
 
 
+
+
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void updateChannelSelections() {
   //Serial.print(F("inside updateChannelSelections() : "));
   noInterrupts();
@@ -1030,8 +1171,10 @@ void updateChannelSelections() {
     }
   }
 }
+#endif
 
 
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void checkFireSwitch() {
   if (digitalRead(fireSw) == FIRE_SWITCH_DEPRESSED) {
     //wait and check again
@@ -1048,29 +1191,31 @@ void checkFireSwitch() {
       }
       statesChanged = true;
       //analogWrite(buzzerPin, BUZZER_FIRING); 
-      //Serial.println("controller is FIRING");
+      Serial.println("controller is FIRING");
     } else {
       //state = STATE_ARMED;
       statesChanged = true;
-      //Serial.println(F("checkFireSwitch inside loop changed state to ARMED"));
+      Serial.println(F("checkFireSwitch inside loop indicates FIRE no longer depressed"));
     }
   } else {
     if (state == STATE_FIRING) {
       // fire button no longer depressed
       state = STATE_ARMED;
       statesChanged = true;
-      //Serial.println(F("checkFireSwitch changed state to ARMED"));
+      Serial.println(F("checkFireSwitch changed state to ARMED"));
     }
   }
 }
+#endif
 
-
-
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void assembleRackStatusPacket() {
   
 }
+#endif
 
 
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void assembleControlPacket() {
   /*    Control protocol packet to send To pad:
         Rack number - 1 Byte
@@ -1096,14 +1241,15 @@ void assembleControlPacket() {
         Total:8 bytes
   */
   //char payload[] = {
-  //    armedRack,armedRack,'L', 'I', 'N', 'K', remote_node, remote_pin, set_state        };
+  //    armedRack,armedRack,'L', 'I', 'N', 'K', RACKID, remote_pin, set_state        };
   if ( 2 == 4 );
 }
-
+#endif
 
 
 
 // ______________________________________________________________________________
+#ifdef LAUNCHER_UNITTYPE_RACK
 void rackLoop() {
 
   if (state != STATE_BRICKED) {
@@ -1144,9 +1290,10 @@ void rackLoop() {
   }
 
 }
-
+#endif
 
 // ______________________________________________________________________________
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
 void controllerLoop() {
 
   /*if (state != STATE_BRICKED) {
@@ -1195,15 +1342,17 @@ void controllerLoop() {
     controllerTransmit();
 
 }
-
+#endif
 
 // ______________________________________________________________________________
 void setup () {
+  delay(100); // give time for bootloader interrupt?  having flashing problems
   SPI.begin();
   //SPI.setClockDivider(SPI_CLOCK_DIV8);  // 2MHz SPI clock if 16MHz system
-  SPI.setClockDivider(SPI_CLOCK_DIV4);  // 2MHz SPI clock if 8MHz system    
-
-  Serial.begin(115200);
+  //SPI.setClockDivider(SPI_CLOCK_DIV4);  // 2MHz SPI clock if 8MHz system    
+  SPI.setClockDivider(SPI_CLOCK_DIV16);  // 2MHz SPI clock if 8MHz system    
+  
+  Serial.begin(SERIAL_BAUD_RATE);
   // initialize all the readings to 0: 
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
     readings[thisReading] = 0;     
@@ -1224,10 +1373,16 @@ void setup () {
   if (unitType == 'C') Serial.println(F("firmware built for CONTROLLER"));
   if (unitType == 'r') Serial.println(F("firmware built for RACK UNIT"));
 
-
-  if (unitType == 'C') rf12_initialize(21, RF12_433MHZ, 212);
-  if (unitType == 'r') rf12_initialize(2, RF12_433MHZ, 212);
+#ifdef RADIO_TYPE_RFM12B
+  rf12_initialize(NODEID, RF12_433MHZ, NETWORKID);
   //rf12_config(RF12_DATA_RATE_4);
+#endif
+
+#ifdef RADIO_TYPE_RFM69HW
+  radio.initialize(FREQUENCY,NODEID,NETWORKID);
+  radio.setHighPower(); //uncomment only for RFM69HW!
+  radio.encrypt(ENCRYPTKEY);
+#endif
 
   pinMode(ADCSelectPin,OUTPUT);
   digitalWrite(ADCSelectPin,HIGH);
@@ -1320,11 +1475,13 @@ void loop () {
   statesChanged = false;
   ops++;
 
-  if (unitType == 'r')
+#ifdef LAUNCHER_UNITTYPE_RACK
     rackLoop();
+#endif
 
-  if (unitType == 'C')
+#ifdef LAUNCHER_UNITTYPE_CONTROLLER
     controllerLoop();    
+#endif
 
   if (statesChanged) {
     mapStatesToDisplay();
