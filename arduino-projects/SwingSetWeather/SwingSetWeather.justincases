@@ -707,7 +707,7 @@ void setup() {
   Serial.print("\n[RF12demo.7]");
   analogReference(AREFSource);
   setupWatchdog();
-  //Serial.println(" done.");
+  Serial.println(" done.");
 
   pinMode(actLed, OUTPUT);
     activityLed(0);
@@ -801,10 +801,7 @@ float rhloop() {
   }
   FreqCount.end();
   //digitalWrite(rhSensorPower, LOW);  // this is now done in main loop so that i2c bus doesnt get hosed
-    activityLed(0);
-    delay(20);
-    activityLed(1);
-    delay(80);
+  delay(100);
   Serial.println("leaving RH...");
   return(relativeHumidity);
 }
@@ -913,7 +910,9 @@ void loop() {
       //pinMode(chargerPin, OUTPUT);
       digitalWrite(chargerPin, chargerOff);
     }
-    //Serial.print(chargeStat);
+
+    Serial.print("chargeStat=");    
+    Serial.print(chargeStat);
 
 
 
@@ -974,6 +973,7 @@ void loop() {
 #endif
     seq++;    
     temploop();
+    Serial.println("got past temploop");
     digitalWrite(rhSensorPower, HIGH); // have to turn power on so i2c doesnt get hosed     
     if (batteryMillivolts > batteryMinForHumidity ){ 
       // spin up the sensor and do a humidity reading
@@ -990,41 +990,21 @@ void loop() {
       relativeHumidity = -1;
     }
     
-    activityLed(0);
-    delay(20);
-    activityLed(1);
-    delay(80);
+
     getTemperature();
     
-  float pressureKPA, pressureSum, temperatureC, tempSum;
-  float pressureInHg, convertedAltitude;
-  const float KPA2INHG = 0.296134; 
-  float altitudeCorrection = 585;
-  int samples = 100;
+    float pressureKPA = 0, temperatureF = 0;    
 
-  pressureSum = 0;
-  tempSum = 0;
-  for (int i=0; i<samples; i++) {
-    pressureSum += mpl115a2.getPressure();
-    delay (10);
-    activityLed(0);
-    tempSum += mpl115a2.getTemperature();
-    delay (10);
-    activityLed(1);
-  }
-     
-  pressureKPA = pressureSum/samples;
-  temperatureC = tempSum/samples;
-  float temperatureF = ((1.8*temperatureC)+32);
-  pressureInHg = pressureKPA * KPA2INHG;
-  convertedAltitude = ((29.92 - pressureInHg)/1.00) * 1000;
-  convertedAltitude += altitudeCorrection;
+    pressureKPA = mpl115a2.getPressure();  
+    Serial.print("Pressure (kPa): "); Serial.print(pressureKPA, 4); Serial.println(" kPa");
+
+    temperatureF = (1.8 * mpl115a2.getTemperature()) +32;  
+    Serial.print("Temp (*F): "); Serial.print(temperatureF, 1); Serial.println(" *F");
+  
+    int tempFm2 = temperatureF * 100;
+    int pressure2 = pressureKPA;
+    int pressure3 = (long)(pressureKPA * 10000) % 10000;
     
-  Serial.print("Temp (*C): "); Serial.print(temperatureC, 2); Serial.println(" *C");
-  Serial.print("Temp (*F): "); Serial.print((1.8*temperatureC)+32, 2); Serial.println(" *F");
-  Serial.print("Pressure (kPa):  "); Serial.print(pressureKPA, 4); Serial.println(" kPa");
-  Serial.print("Pressure (inHg): "); Serial.print(pressureInHg, 4); Serial.println(" inHg");
-  Serial.print("Altitude (ft, tentative): "); Serial.print(convertedAltitude, 0); Serial.println(" ft\n");
 
     
     
@@ -1036,58 +1016,20 @@ void loop() {
     //char payload[] = {'B', 'L', 'I', 'N', 'K', remote_node, remote_pin, set_state};
 
     float tempF = DallasTemperature::toFahrenheit(tempC);
-    
-    char converted_temp[] = "                                ";
-    Serial.print(" and now for proper printing...");
-    Serial.print(dtostrf((double)tempF, 6, 2, converted_temp));
-    Serial.println("F");
-    int sl = 0;
+    //Serial.print("tempF is ");
+    //Serial.println(tempF);
+    int tempF100 = (DallasTemperature::toFahrenheit(tempC)) *100;
+    int tmp101100 = (tmp101 * 100);
+    int rh100 = (relativeHumidity * 100);
     char payload[64] = "                                                               ";
 #ifdef RECV_MODE
     int n=sprintf (payload, "i=%d,t1=%d.%02d ", seq, tempF100/100, tempF100%100);
 #else
-    sprintf (payload, "%d", seq);
-    sprintf(&payload[strlen(payload)], ",%sF", converted_temp);
-    Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-
-    //converted_temp[20] = "                    ";
-    dtostrf((double)tmp101, 6, 2, converted_temp);
-    sprintf(&payload[strlen(payload)], ",%sF", converted_temp);
-    Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);    
-    //converted_temp[] = "                                ";
-    dtostrf((double)temperatureF, 6, 2, converted_temp);
-    sprintf(&payload[strlen(payload)], ",%sF", converted_temp);
-    Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    //converted_temp[] = "                                ";
-
-    dtostrf((double)convertedAltitude, 5, 0, converted_temp);
-    sprintf(&payload[strlen(payload)], ",%sft", converted_temp);
-    Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    //converted_temp[] = "                                ";
-
-
-    int rh100 = relativeHumidity;
-    sprintf(&payload[strlen(payload)], ",%d%%", rh100);
-    Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    sprintf(&payload[strlen(payload)], ",%dmV", batteryMillivolts);
-        Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    sprintf(&payload[strlen(payload)], ",%dmV", solarMillivolts);
-        Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    sprintf(&payload[strlen(payload)], ",%c", chargeStat);
-        Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    sprintf(&payload[strlen(payload)], ",cpo:%d%%", cpr);
-        Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    
-    sprintf(&payload[strlen(payload)], "\0");
-        Serial.print("strlen "); Serial.print(sl++); Serial.print("="); Serial.println(strlen(payload),DEC);
-    
-    
-    /*int n=sprintf (payload, "%d,%d.%02d,%d.%02d,%f,%f,%f,%f,%d%%,%dmV,%dmV,%c,cpo=%d ",
+    int n=sprintf (payload, "%d,%d.%02d,%d.%02d,%d.%02d,%d.%04d,%d%%,%dmV,%dmV,%c,cpo=%d ",
                               seq, tempF100/100, tempF100%100, tmp101100/100, tmp101100%100,
-                              temperatureF, pressureKPA, pressureInHg, convertedAltitude,
+                              tempFm2/100, tempFm2%100, pressure2,pressure3,
                               rh100/100,
                               batteryMillivolts,solarMillivolts,chargeStat,cpr);
-                              */
 #endif
     /*        char payload[] = {'t', '=',
      ((tempC100 / 1000)+48),
@@ -1107,21 +1049,19 @@ void loop() {
 #ifdef RECV_MODE
     Serial.print("Receiver local:");
 #else
-    Serial.print("Sending to dest=");
+    Serial.print("Sending: ");
     Serial.print(header);
-    Serial.print(" : ");
 #endif
 
-    //for (byte i = 0; i < strlen(payload); ++i)
-    //  Serial.print(payload[i]);
-    //  Serial.println();
-    Serial.println(payload);
+    for (byte i = 0; i < sizeof payload; ++i)
+      Serial.print(payload[i]);
+      Serial.println();
 #ifdef RECV_MODE
     } // done with millis based interval timing
 #endif
     
 #ifndef RECV_MODE
-    rf12_sendStart(header, payload, strlen(payload));
+    rf12_sendStart(header, payload, sizeof payload);
     activityLed(0);
     delay(20);
     activityLed(1);
@@ -1138,7 +1078,7 @@ void loop() {
     delay(20);
     activityLed(0);
         
-  if (seq >=10) sleepWithBeacon(50*5);  //(26 = ~60 seconds between shots)
+  if (seq >=10) sleepWithBeacon(49*5);  //(26 = ~60 seconds between shots)
 #endif
   //sleepWithBeacon(1);  //(26 = ~60 seconds between shots)
   
