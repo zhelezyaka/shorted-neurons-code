@@ -62,8 +62,10 @@ volatile uint8_t * recvdPacket;
 #include <JeeLib.h>
 #include <RH_RF69.h>
 
+uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
+static uint8_t maxRecvdPacketLen = 50;
 // Singleton instance of the radio driver
-RH_RF69 rf69;
+RH_RF69 radio;
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 char binstr[17] = "\0";
@@ -185,6 +187,39 @@ void readAllRegs()
 
 
 
+void rf69setup() 
+{
+  Serial.begin(115200);
+  if (!radio.init())
+    Serial.println("init failed");
+  // Defaults after init are 434.0MHz, modulation FSK_Rb2Fd5, +13dbM
+  // No encryption
+  if (!radio.setFrequency(434.2))
+    Serial.println("setFrequency failed");
+  if (!radio.setModemConfig(RH_RF69::GFSK_Rb250Fd250))
+  //if (!rf69.setModemConfig(RH_RF69::FSK_Rb55555Fd50))
+    Serial.println("setModemConfig failed");
+  
+  
+#if 0
+  // For compat with RFM69 Struct_send
+  radio.setModemConfig(RH_RF69::GFSK_Rb250Fd250);
+  radio.setPreambleLength(3);
+  uint8_t syncwords[] = { 0x2d, 0x64 };
+  radio.setSyncWords(syncwords, sizeof(syncwords));
+  radio.setEncryptionKey((uint8_t*)"thisIsEncryptKey");
+#endif
+
+  setHighPower(true);  
+  radio.setEncryptionKey(NULL);
+  radio.setEncryptionKey((uint8_t*)"thisIsEncryptKey");
+  
+  Serial.println("registers:");
+  readAllRegs();
+}
+
+
+
 
 #endif
 /* ================= end of RF69 includes ============================ */
@@ -209,6 +244,11 @@ MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
 #define hvArmPin 6
 
 MilliTimer sendTimer;
+long timeoutAtMillis = 0;
+long softTimeoutAtMillis = 0;
+static const long timeoutPeriod = 600;
+long timeoutsTripped = 0;
+
 char start_msg[] = "BLINK";
 byte needToSend, remote_pin, set_state;
 int last_state = HIGH;
@@ -682,29 +722,23 @@ void rackListen() {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW    
-    if (radio.receiveDone() && rf12_crc == 0) {
+    if (radio.waitAvailableTimeout(timeoutPeriod / 2)) {
       waitingOnPacket = false;
       digitalWrite(txrxPin,LOW);
       Serial.println("got somethin");
       //recvdPacket = (volatile uint8_t *)rf12_data;
-      recvdPacket = radio.DATA;
+      if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
 
-      if (radio.DATALEN != 8) {
+      
+        if (strlen((char *)recvdPacket) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
-        Serial.println(F("Error: wrong byte count, payload is:"));
-        for (byte i = 0; i < radio.DATALEN; ++i)
-          Serial.print((char)recvdPacket[i]);
-        Serial.println();
+          Serial.println(F("Error: wrong byte count, payload is:"));
+          for (byte i = 0; i < strlen((char *) recvdPacket); ++i)
+            Serial.print((char)recvdPacket[i]);
+          Serial.println();
 #endif
-
-      if (radio.ACK_REQUESTED)
-      {
-        radio.sendACK();
-        Serial.print(" - ACK sent");
-        delay(10);
-      }
-
+ 
 #endif
 
         
@@ -781,6 +815,12 @@ void rackListen() {
       //Serial.print("this was selectedState right before rackTransmit: "); Serial.println(selectedState,BIN);
       rackTransmit();
     }
+#ifdef RADIO_TYPE_RFM69HW
+    } else {
+      Serial.println(F("timeout during radio listen at __LINE__, Error: wrong byte count, payload is:"));
+    }
+#endif
+    
   }
 }
 
@@ -816,31 +856,25 @@ void controllerListen() {
 #endif
 #endif
 
-#ifdef RADIO_TYPE_RFM69HW
-    if (radio.receiveDone()) {
+#ifdef RADIO_TYPE_RFM69HW    
+    if (radio.waitAvailableTimeout(timeoutPeriod / 2)) {
       waitingOnPacket = false;
       digitalWrite(txrxPin,LOW);
       Serial.println("got somethin");
       //recvdPacket = (volatile uint8_t *)rf12_data;
-      recvdPacket = radio.DATA;
+      if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
 
-      if (radio.ACK_REQUESTED)
-      {
-        radio.sendACK();
-        Serial.print(" - ACK sent");
-        //delay(10);
-      }
-
-      if (radio.DATALEN != 8) {
+      
+        if (strlen((char *)recvdPacket) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
-        Serial.println(F("Error: wrong byte count, payload is:"));
-        for (byte i = 0; i < radio.DATALEN; ++i)
-          Serial.print((char)recvdPacket[i]);
-        Serial.println();
-#endif
+          Serial.println(F("Error: wrong byte count, payload is:"));
+          for (byte i = 0; i < strlen((char *) recvdPacket); ++i)
+            Serial.print((char)recvdPacket[i]);
+          Serial.println();
 #endif
 
+#endif
 
 
       } else {
@@ -884,6 +918,12 @@ void controllerListen() {
       }
       digitalWrite(txrxPin,HIGH);
     }
+#ifdef RADIO_TYPE_RFM69HW
+    } else {
+      Serial.println(F("timeout during radio listen at __LINE__, Error: wrong byte count, payload is:"));
+    }
+#endif
+
   }
 }
 
@@ -938,7 +978,7 @@ void rackTransmit() {
       if ( state == STATE_FIRING ) 
         firing = armState;
   
-      char payload[] = {
+      uint8_t payload[] = {
         'M','e', state, continuityState, selectedState,  firingState, 'V', 'I'};
   
   
@@ -970,7 +1010,7 @@ void rackTransmit() {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
-    radio.sendWithRetry(RACKID, payload, sizeof payload);
+    radio.send(payload, sizeof(payload));
 #endif
 
 
@@ -1058,7 +1098,7 @@ void controllerTransmit() {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
-    radio.sendWithRetry(RACKID, payload, sizeof payload);
+    radio.send(payload, sizeof payload);
 #endif
 
 
@@ -1145,10 +1185,6 @@ void stopFire() {
 
 
 
-long timeoutAtMillis = 0;
-long softTimeoutAtMillis = 0;
-static const long timeoutPeriod = 600;
-long timeoutsTripped = 0;
 
 void resetTimeout() {
   timeoutAtMillis = (millis() + timeoutPeriod);
@@ -1494,9 +1530,7 @@ void setup () {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
-  radio.setHighPower(); //uncomment only for RFM69HW!
-  radio.encrypt(ENCRYPTKEY);
+  rf69setup();
 #endif
 
   pinMode(ADCSelectPin,OUTPUT);
