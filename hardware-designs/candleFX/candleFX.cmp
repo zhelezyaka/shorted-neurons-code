@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-11-11 BZR 4454)-product date = Tue 29 Apr 2014 10:19:38 PM MDT
+Cmp-Mod V01 Created by CvPcb (2013-11-11 BZR 4454)-product date = Tue 07 Oct 2014 05:57:01 PM MDT
 
 BeginCmp
 TimeStamp = /53606228;
@@ -43,6 +43,13 @@ IdModule  = discret:D5;
 EndCmp
 
 BeginCmp
+TimeStamp = /54347C1A;
+Reference = D3;
+ValeurCmp = 1n4148;
+IdModule  = discret:D3;
+EndCmp
+
+BeginCmp
 TimeStamp = /5350C1D5;
 Reference = IC1;
 ValeurCmp = ATTINY85-P;
@@ -71,6 +78,20 @@ IdModule  = discret:R3-LARGE_PADS;
 EndCmp
 
 BeginCmp
+TimeStamp = /54347C06;
+Reference = R3;
+ValeurCmp = 1k;
+IdModule  = discret:R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
+TimeStamp = /54347BF2;
+Reference = R4;
+ValeurCmp = 10k;
+IdModule  = discret:R3-LARGE_PADS;
+EndCmp
+
+BeginCmp
 TimeStamp = /53588D1F;
 Reference = RV1;
 ValeurCmp = 20k;
@@ -80,13 +101,6 @@ EndCmp
 BeginCmp
 TimeStamp = /53588D01;
 Reference = RV2;
-ValeurCmp = 20k;
-IdModule  = Potentiometer_RevB_02Aug2010:Potentiometer_Trimmer-Piher_PT15-V15_horizontal_RevA_02Aug2010;
-EndCmp
-
-BeginCmp
-TimeStamp = /53588D33;
-Reference = RV3;
 ValeurCmp = 20k;
 IdModule  = Potentiometer_RevB_02Aug2010:Potentiometer_Trimmer-Piher_PT15-V15_horizontal_RevA_02Aug2010;
 EndCmp

@@ -1,6 +1,6 @@
-update=Wed 30 Apr 2014 01:20:21 AM MDT
+update=Wed 08 Oct 2014 07:02:29 PM MDT
 version=1
-last_client=kicad
+last_client=eeschema
 [pcbnew]
 version=1
 LastNetListRead=
@@ -38,13 +38,20 @@ LibName14=dip_sockets
 LibName15=pga_sockets
 LibName16=valves
 LibDir=
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
+[general]
+version=1
 [eeschema]
 version=1
 PageLayoutDescrFile=
 SubpartIdSeparator=0
 SubpartFirstId=65
 LibDir=/home/bts/playtime/shorted-neurons-code/CRASH-launcher/docs/kicad-bryan_4chan/libraries
-NetFmtName=
+NetFmtName=PcbnewAdvanced
 RptD_X=0
 RptD_Y=100
 RptLab=1
@@ -85,10 +92,3 @@ LibName32=Gajda_ttlieee
 LibName33=LED_RGB
 LibName34=rfm12
 LibName35=ULN280xA
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
-[general]
-version=1

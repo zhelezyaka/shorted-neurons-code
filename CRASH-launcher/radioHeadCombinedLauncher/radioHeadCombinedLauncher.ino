@@ -62,8 +62,9 @@ volatile uint8_t * recvdPacket;
 #include <JeeLib.h>
 #include <RH_RF69.h>
 
-uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
-static uint8_t maxRecvdPacketLen = 50;
+//uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
+uint8_t recvdPacket[8];
+static uint8_t maxRecvdPacketLen = 8;
 // Singleton instance of the radio driver
 RH_RF69 radio;
 
@@ -212,7 +213,7 @@ void rf69setup()
 
   setHighPower(true);  
   radio.setEncryptionKey(NULL);
-  radio.setEncryptionKey((uint8_t*)"thisIsEncryptKey");
+  //radio.setEncryptionKey((uint8_t*)"thisIsEncryptKey");
   
   Serial.println("registers:");
   readAllRegs();
@@ -715,6 +716,7 @@ void rackListen() {
 
 #ifdef DEBUG_VIA_SERIAL
         Serial.println(F("Error: wrong byte count, payload is:"));
+        Serial.println(strlen((char *)recvdPacket), DEC);
         for (byte i = 0; i < rf12_len; ++i)
           Serial.print((char)recvdPacket[i]);
         Serial.println();
@@ -729,13 +731,19 @@ void rackListen() {
       //recvdPacket = (volatile uint8_t *)rf12_data;
       if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
 
-      
+        //recvdPacket[8] = '\0';
         if (strlen((char *)recvdPacket) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
           Serial.println(F("Error: wrong byte count, payload is:"));
-          for (byte i = 0; i < strlen((char *) recvdPacket); ++i)
+          Serial.println(strlen((char *)recvdPacket), DEC);
+          //for (byte i = 0; i < strlen((char *) recvdPacket); ++i) {
+          for (byte i = 0; i < 8; ++i) {
             Serial.print((char)recvdPacket[i]);
+            Serial.print(recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.println((char)recvdPacket[i], BIN);
+          }
           Serial.println();
 #endif
  
@@ -864,13 +872,17 @@ void controllerListen() {
       //recvdPacket = (volatile uint8_t *)rf12_data;
       if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
 
-      
+        recvdPacket[8] = '\0';
         if (strlen((char *)recvdPacket) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
           Serial.println(F("Error: wrong byte count, payload is:"));
-          for (byte i = 0; i < strlen((char *) recvdPacket); ++i)
+          Serial.println(strlen((char *)recvdPacket), DEC);
+          for (byte i = 0; i < strlen((char *) recvdPacket); ++i) {
             Serial.print((char)recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.println((char)recvdPacket[i], BIN);
+          }
           Serial.println();
 #endif
 
@@ -941,12 +953,14 @@ void rackTransmit() {
 
   boolean waitingOnPacket = true;
 
+
   //Serial.println("Preparing to rackTransmit()");
   while(needToSend && (! checkTimeout())) {
+#ifdef RADIO_TYPE_RFM12B
     rf12_recvDone();
 
     //Serial.println("really going to rackTransmit()");
-#ifdef RADIO_TYPE_RFM12B
+
     if (needToSend && rf12_canSend()) {
 #endif
 
@@ -1010,7 +1024,8 @@ void rackTransmit() {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
-    radio.send(payload, sizeof(payload));
+    //radio.send(payload, sizeof(payload));
+    radio.send(payload, 8);
 #endif
 
 
@@ -1066,7 +1081,7 @@ void controllerTransmit() {
     if ( state == STATE_FIRING ) 
       firing = armState;
 
-    char payload[] = {
+    uint8_t payload[] = {
       armedRack,armedRack, state, armState, firing, 'b', 't', 's'};
 
 
@@ -1098,7 +1113,8 @@ void controllerTransmit() {
 #endif
 
 #ifdef RADIO_TYPE_RFM69HW
-    radio.send(payload, sizeof payload);
+    //radio.send(payload, sizeof(payload));
+    radio.send(payload, 8);
 #endif
 
 
