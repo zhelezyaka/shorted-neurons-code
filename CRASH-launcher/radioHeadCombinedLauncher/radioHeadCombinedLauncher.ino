@@ -62,9 +62,10 @@ volatile uint8_t * recvdPacket;
 #include <JeeLib.h>
 #include <RH_RF69.h>
 
-//uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
-uint8_t recvdPacket[8];
-static uint8_t maxRecvdPacketLen = 8;
+uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
+//uint8_t recvdPacket[8];
+static uint8_t maxRecvdPacketLen = 50;
+//uint8_t maxRecvdPacketLen = 50;
 // Singleton instance of the radio driver
 RH_RF69 radio;
 
@@ -247,7 +248,7 @@ MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
 MilliTimer sendTimer;
 long timeoutAtMillis = 0;
 long softTimeoutAtMillis = 0;
-static const long timeoutPeriod = 600;
+static const long timeoutPeriod = 100;
 long timeoutsTripped = 0;
 
 char start_msg[] = "BLINK";
@@ -546,7 +547,6 @@ void mapStatesToDisplay() {
 
   //armState = armState | ((pinstateB & B10000000) >> 7);  
 
-
   //Serial.print("armState3 is now: rack=");
   //Serial.print(armedRack);
   //Serial.print(", "); 
@@ -730,19 +730,25 @@ void rackListen() {
       Serial.println("got somethin");
       //recvdPacket = (volatile uint8_t *)rf12_data;
       if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
-
+        Serial.print(F("FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME line"));
+        Serial.println(__LINE__);
+        Serial.print(">>>>>>>>>>lastRssi :");
+        Serial.println(radio.lastRssi());
         //recvdPacket[8] = '\0';
-        if (strlen((char *)recvdPacket) != 8) {
+        if ((maxRecvdPacketLen) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
           Serial.println(F("Error: wrong byte count, payload is:"));
           Serial.println(strlen((char *)recvdPacket), DEC);
           //for (byte i = 0; i < strlen((char *) recvdPacket); ++i) {
-          for (byte i = 0; i < 8; ++i) {
+          for (byte i = 0; i < maxRecvdPacketLen; ++i) {
             Serial.print((char)recvdPacket[i]);
+            Serial.print(" = ");
             Serial.print(recvdPacket[i]);
             Serial.print(" = ");
-            Serial.println((char)recvdPacket[i], BIN);
+            Serial.print((char)recvdPacket[i], BIN);
+            Serial.print(" = ");
+            Serial.println(recvdPacket[i], BIN);
           }
           Serial.println();
 #endif
@@ -770,6 +776,19 @@ void rackListen() {
         Serial.print(", s=");
         Serial.print(recvdPacket[7]);    
         Serial.println();
+        
+        Serial.println(F("RAW message:"));
+        Serial.print("message length: ");
+        Serial.println(maxRecvdPacketLen);
+        for (byte i = 0; i < maxRecvdPacketLen; ++i) {
+            Serial.print((char)recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.print(recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.print((char)recvdPacket[i], BIN);
+            Serial.print(" = ");
+            Serial.println(recvdPacket[i], BIN);
+        }
 #endif
         selectedState = recvdPacket[3];          
         //Serial.print("this was selectedState right before figuring out what came over: "); Serial.println(selectedState,BIN);          
@@ -825,7 +844,8 @@ void rackListen() {
     }
 #ifdef RADIO_TYPE_RFM69HW
     } else {
-      Serial.println(F("timeout during radio listen at __LINE__, Error: wrong byte count, payload is:"));
+      Serial.print(F("timeout during radio listen at line "));
+      Serial.println(__LINE__);
     }
 #endif
     
@@ -872,20 +892,29 @@ void controllerListen() {
       //recvdPacket = (volatile uint8_t *)rf12_data;
       if (radio.recv(recvdPacket, &maxRecvdPacketLen) ) {
 
-        recvdPacket[8] = '\0';
-        if (strlen((char *)recvdPacket) != 8) {
+        Serial.print(F("FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME line"));
+        Serial.println(__LINE__);
+        Serial.print(">>>>>>>>>>lastRssi :");
+        Serial.println(radio.lastRssi());
+        //recvdPacket[8] = '\0';
+        if ((maxRecvdPacketLen) != 8) {
 
 #ifdef DEBUG_VIA_SERIAL
           Serial.println(F("Error: wrong byte count, payload is:"));
           Serial.println(strlen((char *)recvdPacket), DEC);
-          for (byte i = 0; i < strlen((char *) recvdPacket); ++i) {
+          //for (byte i = 0; i < strlen((char *) recvdPacket); ++i) {
+          for (byte i = 0; i < 8; ++i) {
             Serial.print((char)recvdPacket[i]);
             Serial.print(" = ");
-            Serial.println((char)recvdPacket[i], BIN);
+            Serial.print(recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.print((char)recvdPacket[i], BIN);
+            Serial.print(" = ");
+            Serial.println(recvdPacket[i], BIN);
           }
           Serial.println();
 #endif
-
+ 
 #endif
 
 
@@ -922,6 +951,19 @@ void controllerListen() {
         Serial.print(", s=");
         Serial.print(recvdPacket[7]);    
         Serial.println();
+        
+        Serial.println(F("RAW message:"));
+        Serial.print("message length: ");
+        Serial.println(maxRecvdPacketLen);
+        for (byte i = 0; i < maxRecvdPacketLen; ++i) {
+            Serial.print((char)recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.print(recvdPacket[i]);
+            Serial.print(" = ");
+            Serial.print((char)recvdPacket[i], BIN);
+            Serial.print(" = ");
+            Serial.println(recvdPacket[i], BIN);
+        }        
 #endif
         continuityState=recvdPacket[3];
         selectedState=recvdPacket[4];
@@ -932,7 +974,8 @@ void controllerListen() {
     }
 #ifdef RADIO_TYPE_RFM69HW
     } else {
-      Serial.println(F("timeout during radio listen at __LINE__, Error: wrong byte count, payload is:"));
+      Serial.print(F("timeout during radio listen at line "));
+      Serial.println(__LINE__);
     }
 #endif
 
@@ -1322,7 +1365,7 @@ void updateChannelSelections() {
   interrupts();
   //Serial.println(pinstateB, BIN);
   if (pinstateB != oldPinstateB ) {
-    delay(20);
+    delay(50);
     noInterrupts();
     pinstateB = Mcp23s17b.port() >> 8;
     interrupts();
