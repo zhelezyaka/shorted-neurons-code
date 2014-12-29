@@ -297,16 +297,16 @@ int mapCharDpFirst (char *c) {
  The led will blink along with the row-number.
  row number 4 (index==3) will blink 4 times etc.
  */
-#define singleTime 10
+#define singleTime 50
 
 void single() {
  for(int a=0; a<3; a++) {
   LEDs.clearDisplay(a);
   for(int row=0;row<8;row++) {
-    //Serial << "chip:" << a << " row:" << row << ",";
+    Serial << "chip:" << a << " row:" << row << ",";
     for(int col=0;col<8;col++) {
       //delay(singleTime);
-      //Serial.print(col);
+      Serial.print(col);
       LEDs.setLed(a,row,col,true);
       delay(singleTime);
       LEDs.setLed(a,row,col,false);
@@ -727,10 +727,6 @@ void updateLEDs() {
 #endif
 
 #ifdef TARGET_35BITCLOCK
-    for(i=0;i<8;i++) {
-    	LEDs.setRow(flowerLEDs,i,frontLEDs[i]);
-    	//LEDs.setRow(rearLEDs,i,backLEDs[i]);
-    }
     
     // special cases for first digit blanking.  not elegant
     // first is "home" time
@@ -759,7 +755,15 @@ void updateLEDs() {
     LEDs.setDigit(debugDigits, 4, mins2, false);
     LEDs.setDigit(clockDigits, 4, secs1, false);
     LEDs.setDigit(clockDigits, 5, secs2, false);
-
+  LEDs.setRow(0,5,B10101010);
+  LEDs.setRow(0,6,B10101010);
+  
+  LEDs.setRow(0,4, byte(unixtime >> 32));
+  LEDs.setRow(0,3, byte(unixtime >> 24));
+  LEDs.setRow(0,2, byte(unixtime >> 16));  
+  LEDs.setRow(0,1, byte(unixtime >> 8));
+  LEDs.setRow(0,0, byte(unixtime));
+  
 #endif
 
 

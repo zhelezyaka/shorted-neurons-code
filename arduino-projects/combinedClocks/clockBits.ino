@@ -2,7 +2,10 @@
 #include "Wire.h"
 #include "RTClib.h"
 #define DS3232_I2C_ADDRESS 0x68
-#define DEBUG_RTC false
+#define DEBUG_RTC true
+#define SECONDS_PER_DAY 86400L
+#define SECONDS_FROM_1970_TO_2000 946684800
+
 
 // Convert normal decimal numbers to binary coded decimal
 byte decToBcd(byte val) {
@@ -13,6 +16,31 @@ byte decToBcd(byte val) {
 byte bcdToDec(byte val) {
   return ( (val/16*10) + (val%16) );
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// utility code, some of this could be exposed in the DateTime API if needed
+
+const uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+// number of days since 2000/01/01, valid for 2001..2099
+static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
+    if (y >= 2000)
+        y -= 2000;
+    uint16_t days = d;
+    for (uint8_t i = 1; i < m; ++i)
+        days += pgm_read_byte(daysInMonth + i - 1);
+    if (m > 2 && y % 4 == 0)
+        ++days;
+    return days + 365 * y + (y + 3) / 4 - 1;
+}
+
+static long time2long(uint16_t days, uint8_t h, uint8_t m, uint8_t s) {
+    return ((days * 24L + h) * 60 + m) * 60 + s;
+}
+
+
+
+
 
 // Stops the DS3232, but it has the side effect of setting seconds to 0
 // Probably only want to use this for testing
@@ -82,6 +110,7 @@ void getDateDS3232(byte *second,
 //end RTC stuff
 
 
+uint32_t unixtime = 0;
 
 
 void rtcSetup() {
@@ -137,6 +166,7 @@ void rtcGrab() {
 #endif
     } else {
 #ifdef RTCDEBUG
+
       Serial.print(", data= ");
       Serial.print(hour, DEC);
       Serial.print(":");
@@ -151,6 +181,13 @@ void rtcGrab() {
       Serial.print(year, DEC);
       Serial.print("  Day_of_week:");
       Serial.println(dayOfWeek, DEC);
+      uint16_t days = date2days(year, month, dayOfMonth);
+      unixtime = 0;
+      unixtime = time2long(days, hour, minute, second);
+      unixtime += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
+      Serial.println("  unixtime:");
+      Serial.println(unixtime,BIN);
+
 #endif
  
     }
@@ -270,7 +307,14 @@ void rtcGrab() {
     Serial.print(minute, DEC);
     Serial.print(":");
     Serial.println(second, DEC);
-
+      uint16_t days = date2days(year, month, dayOfMonth);
+      unixtime = 0;
+      unixtime = time2long(days, hour, minute, second);
+      unixtime += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
+      Serial.print("  unixtime:");
+      Serial.print(unixtime,BIN);
+      Serial.print("  or:");
+      Serial.println(unixtime,DEC);
     
 
 }
