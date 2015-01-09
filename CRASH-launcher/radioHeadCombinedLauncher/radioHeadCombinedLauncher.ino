@@ -1,7 +1,7 @@
+#define DEBUG_VIA_SERIAL 1
 #define LAUNCHER_UNITTYPE_RACK r
 #define HARDCODED_UNITTYPE r
 byte unitType = 'r';
-#define DEBUG_VIA_SERIAL 1
 //#define LAUNCHER_UNITTYPE_CONTROLLER 1
 //#define HARDCODED_UNITTYPE C
 //byte unitType = 'C';
@@ -34,13 +34,10 @@ byte unitType = 'r';
 #define DATAOUT 11  //MOSI
 #define DATAIN 12   //MISO - not used, but part of builtin SPI
 #define SPICLOCK 13 //sck
-
 #include <SPI.h>
 #define ADCSelectPin 17
 
 #include <Mcp23s17.h>
-
-
 #include <Streaming.h>
 #include <PString.h>
 
@@ -59,7 +56,7 @@ volatile uint8_t * recvdPacket;
 
 /* ================= RF69 includes ============================ */
 #ifdef RADIO_TYPE_RFM69HW
-#include <JeeLib.h>
+#include <JeeLib.h> 
 #include <RH_RF69.h>
 
 uint8_t recvdPacket[RH_RF69_MAX_MESSAGE_LEN];
@@ -220,9 +217,6 @@ void rf69setup()
   readAllRegs();
 }
 
-
-
-
 #endif
 /* ================= end of RF69 includes ============================ */
 
@@ -231,8 +225,9 @@ void rf69setup()
 #define MCP23S17_SLAVE_SELECT_PIN 3 //arduino   <->   SPI Slave Select           -> CS  (Pin 11 on MCP23S17 DIP)
 // SINGLE DEVICE
 // Instantiate a single Mcp23s17 object
-//MCP23S17 Mcp23s17 = MCP23S17( MCP23S17_SLAVE_SELECT_PIN );
+// MCP23S17 Mcp23s17 = MCP23S17( MCP23S17_SLAVE_SELECT_PIN );
 MCP23S17 Mcp23s17 = MCP23S17(MCP23S17_SLAVE_SELECT_PIN, 0x7);
+// second instance
 MCP23S17 Mcp23s17b = MCP23S17(MCP23S17_SLAVE_SELECT_PIN,0x0);
 
 
