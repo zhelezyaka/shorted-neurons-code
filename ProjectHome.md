@@ -1,0 +1,1 @@
+strange and sometimes random snippets of whatever the shorted neurons are working on.
